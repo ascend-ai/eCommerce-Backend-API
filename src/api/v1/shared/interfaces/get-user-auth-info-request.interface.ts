@@ -1,7 +1,7 @@
 import { Request } from 'express';
-import { UserDataInterface } from '../../data-models';
 import { Types } from 'mongoose';
+import { UserInterface } from './user.interface';
 
 export interface GetUserAuthInfoRequestInterface extends Request {
-  loggedInUser?: (UserDataInterface & { _id: Types.ObjectId });
+  loggedInUser?: (UserInterface & { _id: Types.ObjectId });
 };

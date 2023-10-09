@@ -1,4 +1,6 @@
-export class AuthCredentialsDto {
+import { UserInterface } from '../interfaces';
+
+export class AuthCredentialsDto implements Partial<UserInterface> {
   email: string;
   password:  string;
   constructor(reqBody: Record<string, string>) {

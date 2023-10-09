@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
-import { AccessTokenPayloadInterface } from '../shared/interfaces';
+import { AccessTokenPayloadInterface } from '../shared';
 
 
 export const getAccessToken = (payload: AccessTokenPayloadInterface) => {

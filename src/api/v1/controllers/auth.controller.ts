@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { UserDataModel } from '../data-models';
 import { getAccessToken, isPasswordValid } from '../helpers';
-import { CustomError, CustomSuccess } from '../shared/utility-classes';
-import { AuthCredentialsDto } from '../shared/data-transfer-objects';
+import { CustomError, CustomSuccess } from '../shared';
+import { AuthCredentialsDto } from '../shared';
 
 export const signUp = async (req: Request, res: Response, next: NextFunction) => {
   try {

@@ -1,14 +1,8 @@
 import mongoose, { CallbackWithoutResultAndOptionalError } from 'mongoose';
 import { getHashedPassword } from '../helpers';
-import { EMAIL_REGEX, PASSWORD_REGEX } from '../shared/constants';
+import { EMAIL_REGEX, PASSWORD_REGEX, PHONE_NUMBER_REGEX, UserInterface, UserRole } from '../shared';
 
-export interface UserDataInterface {
-  email: string,
-  password: string
-}
-
-// User schema
-const userSchema = new mongoose.Schema<UserDataInterface>({
+const userSchema = new mongoose.Schema<UserInterface>({
   email: {
     type: String,
     required: true,
@@ -20,9 +14,42 @@ const userSchema = new mongoose.Schema<UserDataInterface>({
     type: String,
     required: true,
   },
+  address: {
+    streetAddressLine1: {
+      type: String,
+      required: true,
+    },
+    streetAddressLine2: String,
+    streetAddressLine3: String,
+    city: {
+      type: String,
+      required: true,
+    },
+    state: {
+      type: String,
+      required: true,
+    },
+    country: {
+      type: String,
+      required: true,
+    },
+    postalCode: {
+      type: Number,
+      required: true
+    },
+  },
+  role: {
+    type: String,
+    enum: [UserRole.ADMIN, UserRole.MODERATOR, UserRole.CUSTOMER]
+  },
+  phoneNumber: {
+    type: String,
+    required: true,
+    trim: true,
+    match: [PHONE_NUMBER_REGEX, 'Phone number invalid']
+  }
 });
 
-// Hash and save password
 userSchema.pre('save', async function (next: CallbackWithoutResultAndOptionalError) {
   if (!this.isModified('password')) {
     next();
@@ -40,5 +67,4 @@ userSchema.pre('save', async function (next: CallbackWithoutResultAndOptionalErr
   }
 });
 
-// User model
-export const UserDataModel = mongoose.model<UserDataInterface>('Users', userSchema);
+export const UserDataModel = mongoose.model<UserInterface>('Users', userSchema);

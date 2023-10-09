@@ -1,10 +1,11 @@
-import express, { NextFunction, Response } from 'express';
-import { GetUserAuthInfoRequestInterface } from '../shared/interfaces';
+import multer from 'multer';
+
+import express from 'express';
+import { uploadProductImage } from '../controllers';
 
 const router = express.Router();
+const upload = multer();
 
-router.get('/', (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
-  
-});
+router.post('/:productId/images', upload.single('product-image'), uploadProductImage);
 
 export const productsRoute = router;
