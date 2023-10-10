@@ -4,10 +4,10 @@ import { AccessTokenPayloadInterface } from '../shared';
 
 
 export const getAccessToken = (payload: AccessTokenPayloadInterface) => {
-  const { ACCESS_TOKEN_SECRET } = process.env;
+  const { ACCESS_TOKEN_SECRET } = <Record<string, string>>process.env;
   const accessToken: string = jwt.sign(
     payload,
-    <string>ACCESS_TOKEN_SECRET,
+    ACCESS_TOKEN_SECRET,
     {
       expiresIn: 86400
     }
