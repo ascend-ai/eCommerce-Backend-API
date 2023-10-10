@@ -1,10 +1,5 @@
 
-# jwt-auth-boilerplate
-
-Auth with JWT (ExpressJS + MongoDB).
-
-
-
+# eCommerce Backend API
 
 ## Environment Variables
 
@@ -19,18 +14,6 @@ PORT=<Desired port number>
 
 
 ## Run Locally
-
-Clone the project
-
-```bash
-  git clone https://github.com/yashdesoi/jwt-auth-boilerplate.git
-```
-
-Go to the project directory
-
-```bash
-  cd jwt-auth-boilerplate
-```
 
 Install dependencies
 

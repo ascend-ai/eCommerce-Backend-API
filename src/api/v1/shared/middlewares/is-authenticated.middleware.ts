@@ -6,12 +6,12 @@ import { CustomError } from '../utility-classes';
 
 export const isAuthenticated = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction): Promise<void> => {
   const accessToken = req?.headers?.authorization;
-  const { ACCESS_TOKEN_SECRET } = process.env;
+  const { ACCESS_TOKEN_SECRET } = <Record<string, string>>process.env;
   if (accessToken) {
     try {
       const embeddedPayloadFromJwt = <AccessTokenPayloadInterface>jwt.verify(
         accessToken,
-        <string>ACCESS_TOKEN_SECRET,
+        ACCESS_TOKEN_SECRET,
       );
       const loggedInUserId = embeddedPayloadFromJwt?.mongoDbUserId;
       if (loggedInUserId) {
