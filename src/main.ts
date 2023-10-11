@@ -8,7 +8,6 @@ import { connectToDatabase } from './config';
 import { outcomeHandler } from './api/v1/shared';
 import { authRoute, productsRoute } from './api/v1/routes';
 import { CustomError } from './api/v1/shared';
-import path from 'path';
 
 dotenv.config();
 colors.enable();

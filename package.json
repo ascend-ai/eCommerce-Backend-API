@@ -4,8 +4,8 @@
   "description": "",
   "scripts": {
     "build": "npx tsc",
-    "start": "MODE=production node dist/main.js",
-    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/main.js\""
+    "start": "MODE=production node dist/src/main.js",
+    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/src/main.js\""
   },
   "author": "",
   "license": "ISC",
