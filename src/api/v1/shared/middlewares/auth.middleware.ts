@@ -1,9 +1,13 @@
 import { NextFunction, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { UserDataModel } from '../../data-models';
+import { UserModel } from '../../data-models';
 import { GetUserAuthInfoRequestInterface, AccessTokenPayloadInterface } from '../interfaces';
 import { CustomError } from '../utility-classes';
+import { UserRole } from '../enums';
 
+/**
+ * Checks whether user is logged in
+ */
 export const isAuthenticated = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction): Promise<void> => {
   const accessToken = req?.headers?.authorization;
   const { ACCESS_TOKEN_SECRET } = <Record<string, string>>process.env;
@@ -15,7 +19,7 @@ export const isAuthenticated = async (req: GetUserAuthInfoRequestInterface, res:
       );
       const loggedInUserId = embeddedPayloadFromJwt?.mongoDbUserId;
       if (loggedInUserId) {
-        const user = await UserDataModel.findById(loggedInUserId);
+        const user = await UserModel.findById(loggedInUserId);
         if (user) {
           // * Adding custom property to req
           req.loggedInUser = user;
@@ -30,6 +34,23 @@ export const isAuthenticated = async (req: GetUserAuthInfoRequestInterface, res:
       next(new CustomError(error.message, 401));
     }
   } else {
-    next(new CustomError('Unauthorized access', 401));
+    next(new CustomError(`Unauthorized access`, 401));
+  }
+};
+
+/**
+ * Checks whether logged in user is ADMIN or MODERATOR.
+ * 
+ * Note:- In order for following middleware to work, isAuthenticated middleware needs to be executed first.
+ */
+export const isAdminOrModerator = (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction): void => {
+  try {
+    if (!req?.loggedInUser ||
+        (req?.loggedInUser && req.loggedInUser.role !== UserRole.CUSTOMER)) {
+      throw new Error(`Unauthorised access`);
+    }
+    next();
+  } catch (error: any) {
+    next(new CustomError(error.message, 401));
   }
 };

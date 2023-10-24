@@ -34,13 +34,14 @@ const userSchema = new mongoose.Schema<UserInterface>({
       required: true,
     },
     postalCode: {
-      type: Number,
+      type: String,
       required: true
     },
   },
   role: {
     type: String,
-    enum: [UserRole.ADMIN, UserRole.MODERATOR, UserRole.CUSTOMER]
+    enum: [UserRole.ADMIN, UserRole.MODERATOR, UserRole.CUSTOMER],
+    default: UserRole.CUSTOMER
   },
   phoneNumber: {
     type: String,
@@ -67,4 +68,4 @@ userSchema.pre('save', async function (next: CallbackWithoutResultAndOptionalErr
   }
 });
 
-export const UserDataModel = mongoose.model<UserInterface>('Users', userSchema);
+export const UserModel = mongoose.model<UserInterface>('User', userSchema);
