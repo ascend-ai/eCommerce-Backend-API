@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { UserDataModel } from '../data-models';
+import { UserModel } from '../data-models';
 import { getAccessToken, isPasswordValid } from '../helpers';
 import { CustomError, CustomSuccess } from '../shared';
 import { AuthCredentialsDto } from '../shared';
@@ -7,8 +7,8 @@ import { AuthCredentialsDto } from '../shared';
 export const signUp = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userData = new AuthCredentialsDto(req.body);
-    const userDocument = await UserDataModel.create(userData);
-    next(new CustomSuccess(userDocument, 200));
+    const user = await UserModel.create(userData);
+    next(new CustomSuccess(user, 200));
   } catch (error: any) {
     next(new CustomError(error.message, 400));
   }
@@ -17,15 +17,15 @@ export const signUp = async (req: Request, res: Response, next: NextFunction) =>
 export const signIn = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password } = req.body;
-    const userDocument = await UserDataModel.findOne({ email });
+    const user = await UserModel.findOne({ email });
     if (!email) {
       throw new Error('Email is required');
     }
-    if (!userDocument || !(await isPasswordValid(password, userDocument.password))) {
+    if (!user || !(await isPasswordValid(password, user.password))) {
       throw new Error('Incorrect email or password');
     }
     const accessToken = getAccessToken({
-      mongoDbUserId: userDocument._id.toString()
+      mongoDbUserId: user._id.toString()
     });
     next(new CustomSuccess({ accessToken }, 200));
   } catch (error: any) {

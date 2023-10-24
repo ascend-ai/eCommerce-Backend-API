@@ -1,2 +1,2 @@
-export * from './is-authenticated.middleware';
-export * from './outcome-handler.middleware'
+export * from './auth.middleware';
+export * from './outcome-handler.middleware';
