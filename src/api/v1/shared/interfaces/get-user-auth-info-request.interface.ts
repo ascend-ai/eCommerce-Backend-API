@@ -1,7 +1,7 @@
 import { Request } from 'express';
-import { Types } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { UserInterface } from './user.interface';
 
 export interface GetUserAuthInfoRequestInterface extends Request {
-  loggedInUser?: (UserInterface & { _id: Types.ObjectId });
+  loggedInUser?: (Document & UserInterface & { _id: Types.ObjectId });
 };

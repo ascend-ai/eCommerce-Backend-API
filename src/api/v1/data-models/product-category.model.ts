@@ -1,14 +1,12 @@
 import mongoose from 'mongoose';
-import { ProductCategoryInterface, ProductImageInterface } from '../shared';
+import { ProductCategoryInterface } from '../shared';
 
 const productCategorySchema = new mongoose.Schema<ProductCategoryInterface>({
-  isPopular: {
-    type: Boolean,
-    required: true
-  },
   name: {
     type: String,
-    required: true
+    required: true,
+    unique: true,
+    match: /^(?!_)(?!.*__)(?!.*_$)[a-z_]+$/,
   }
 });
 

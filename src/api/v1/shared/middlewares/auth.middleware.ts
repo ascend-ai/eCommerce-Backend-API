@@ -43,10 +43,10 @@ export const isAuthenticated = async (req: GetUserAuthInfoRequestInterface, res:
  * 
  * Note:- In order for following middleware to work, isAuthenticated middleware needs to be executed first.
  */
-export const isAdminOrModerator = (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction): void => {
+export const isAuthenticateUserAdminOrMod = (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction): void => {
   try {
     if (!req?.loggedInUser ||
-        (req?.loggedInUser && req.loggedInUser.role !== UserRole.CUSTOMER)) {
+        (req?.loggedInUser && req.loggedInUser.role === UserRole.CUSTOMER)) {
       throw new Error(`Unauthorised access`);
     }
     next();

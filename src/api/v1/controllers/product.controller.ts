@@ -1,34 +1,63 @@
 import { NextFunction, Response } from 'express';
-import { CustomError, CustomSuccess, GetUserAuthInfoRequestInterface, TARGETED_IMG_SIZE } from '../shared';
-import { compressImage, handleImageValidity } from '../helpers';
-import { existsSync, mkdirSync, writeFile } from 'fs';
-import path from 'path';
+import { CreateProductDto, CustomError, CustomSuccess, GetUserAuthInfoRequestInterface, MAX_IMAGES_PER_PRODUCT, ProductCategoryInterface } from '../shared';
+import mongoose, { ClientSession } from 'mongoose';
+import { ProductCategoryModel, ProductModel } from '../data-models';
+import { createProductImage, uploadProductImageFile } from '../helpers';
 
-export const uploadProductImage = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
-  const { PUBLIC_DIRECTORY_PATH } = <Record<string, string>>process.env;
-  const UPLOAD_DIRECTORY_PATH = path.join(PUBLIC_DIRECTORY_PATH, 'uploads');
-  let productImgFile = <Express.Multer.File>req?.file;
-  const imgExtension = productImgFile.mimetype.split('/')[1];
+/**
+ * 
+ * @param req 
+ * @param res 
+ * @param next 
+ * @returns 
+ */
+export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  const session: ClientSession = await mongoose.startSession();
+  session.startTransaction();
   try {
-    handleImageValidity(productImgFile);
+    const productImgFiles = <Array<Express.Multer.File>>req?.files;
+    const productData = new CreateProductDto(req.body);
 
-    if (productImgFile.size > TARGETED_IMG_SIZE) {
-      productImgFile = await compressImage(productImgFile, TARGETED_IMG_SIZE);
-    }
-
-    if (!existsSync(UPLOAD_DIRECTORY_PATH)) {
-      mkdirSync(UPLOAD_DIRECTORY_PATH, { recursive: true });
-    }
-
-    const imagePath = path.join(UPLOAD_DIRECTORY_PATH,  'imageName' + '.' + imgExtension);
-
-    writeFile(imagePath, productImgFile.buffer, (err) => {
-      if (err) {
-        throw new Error('Error saving image.');
-      }
+    const product = new ProductModel({
+      name: productData.name,
+      description: productData.description,
+      quantityInStock: productData.quantityInStock
     });
-    next(new CustomSuccess(null, 200));
+
+    if (!Array.isArray(productImgFiles)) {
+      throw new Error(`Image files not present.`);
+    }
+
+    if (productImgFiles.length > MAX_IMAGES_PER_PRODUCT) {
+      throw new Error(`Maximum 3 images per product.`);
+    }
+    
+    for (let file of productImgFiles) {
+      const productImgId = await createProductImage(file, product._id, session);
+      product.images?.push(productImgId);
+    }
+
+    for (let categoryData of <Array<ProductCategoryInterface>>productData.categories) {
+      let productCategory = await ProductCategoryModel.findOne({ name: categoryData.name });
+      if (!productCategory) {
+        productCategory = await ProductCategoryModel.create(categoryData);
+      }
+      product.categories?.push(productCategory._id);
+    }
+
+    await product.save({ session });
+    await session.commitTransaction();
+
+    for (let file of productImgFiles) {
+      await uploadProductImageFile(file);
+    }
+
+    await session.endSession();
+    return next(new CustomSuccess(product, 200));
+
   } catch (error: any) {
-    next(new CustomError(error.message, 400));
+    await session.abortTransaction();
+    await session.endSession();
+    return next(new CustomError(error.message, 400));
   }
-}
+};
