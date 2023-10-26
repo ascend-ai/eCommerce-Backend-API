@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { ProductInterface } from '../shared';
+import { MAX_IMAGES_PER_PRODUCT, MIN_IMAGES_PER_PRODUCT, ProductInterface } from '../shared';
 
 const productSchema = new mongoose.Schema<ProductInterface>({
   name: {
@@ -10,8 +10,12 @@ const productSchema = new mongoose.Schema<ProductInterface>({
   },
   description: {
     type: String,
-    minlength: 5,
-    maxlength: 1000,
+    validate: {
+      validator: function (value: string) {
+        return (value?.length === 0) || (value?.length >= 5 && value?.length <= 1000);
+      },
+      message: 'Description should be minimum 5 and maximum 1000 characters long.'
+    }
   },
   quantityInStock: {
     type: Number,
@@ -32,7 +36,8 @@ const productSchema = new mongoose.Schema<ProductInterface>({
     ],
     validate: {
       validator: function (value: Array<any>) {
-        return value.length <= 3;
+        return value.length <= MAX_IMAGES_PER_PRODUCT &&
+               value.length >= MIN_IMAGES_PER_PRODUCT;
       },
       message: 'The images array should contain no more than 3 elements.',
     },
