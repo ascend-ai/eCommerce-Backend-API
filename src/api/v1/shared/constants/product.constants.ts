@@ -8,3 +8,5 @@ export const TARGETED_IMG_SIZE = 100 * 1024;
 export const MAX_IMAGES_PER_PRODUCT = 3;
 
 export const MIN_IMAGES_PER_PRODUCT = 1;
+
+export const PRODUCT_CATEGORY_NAME_REGEX = /^(?!_)(?!.*__)(?!.*_$)[a-z_]+$/;

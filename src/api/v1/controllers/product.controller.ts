@@ -4,13 +4,7 @@ import mongoose, { ClientSession } from 'mongoose';
 import { ProductCategoryModel, ProductModel } from '../data-models';
 import { createProductImage, uploadProductImageFile } from '../helpers';
 
-/**
- * 
- * @param req 
- * @param res 
- * @param next 
- * @returns 
- */
+
 export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
   const session: ClientSession = await mongoose.startSession();
   session.startTransaction();
@@ -37,10 +31,12 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
       product.images?.push(productImgId);
     }
 
-    for (let categoryData of <Array<ProductCategoryInterface>>productData.categories) {
-      let productCategory = await ProductCategoryModel.findOne({ name: categoryData.name });
+    for (let categoryName of <Array<string>>productData.categories) {
+      let productCategory = await ProductCategoryModel.findOne({ name: categoryName });
       if (!productCategory) {
-        productCategory = await ProductCategoryModel.create(categoryData);
+        productCategory = await ProductCategoryModel.create({
+          name: categoryName
+        });
       }
       product.categories?.push(productCategory._id);
     }
@@ -59,5 +55,34 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
     await session.abortTransaction();
     await session.endSession();
     return next(new CustomError(error.message, 400));
+  }
+};
+
+export const getProducts = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  try {
+    const products = await ProductModel
+      .find()
+      .populate('images')
+      .populate('categories');
+    return next(new CustomSuccess(products, 200));
+  } catch (error: any) {
+    return next(new CustomError(error.message, 500));
+  }
+};
+
+export const getProduct = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  try {
+    const { productId } = req.params;
+    const product = await ProductModel
+      .findById(productId)
+      .populate('images')
+      .populate('categories');
+
+    if (!product) {
+      throw new Error(`Product with id ${productId} not found.`);
+    }
+    return next(new CustomSuccess(product, 200));
+  } catch (error: any) {
+    return next(new CustomError(error.message, 500));
   }
 };

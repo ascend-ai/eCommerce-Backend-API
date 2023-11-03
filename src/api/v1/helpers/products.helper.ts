@@ -65,7 +65,7 @@ export const uploadProductImageFile = async (imgFile: Express.Multer.File): Prom
 };
 
 /**
- * 
+ * Compress image under the size of 100 KB
  * @param imgFile 
  * @param targetSize 
  * @returns 
