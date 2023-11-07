@@ -1,7 +1,7 @@
 import multer from 'multer';
 
 import express from 'express';
-import { createProduct, getProduct, getProducts } from '../controllers';
+import { addNewImageOfProduct, createProduct, deleteImageOfProduct, getProduct, getProducts, rearrangeImagesOfProduct } from '../controllers';
 import { isAuthenticateUserAdminOrMod, isAuthenticated } from '../shared';
 
 const router = express.Router();
@@ -17,6 +17,10 @@ router.use(isAuthenticated);
 // * AUTHORIZED ROUTES - ADMIN & MODERATORS
 router.use(isAuthenticateUserAdminOrMod);
 router.post('/', upload.array('product-images'), createProduct);
+router.post('/:productId/images', upload.single('product-image'), addNewImageOfProduct);
+router.put('/:productId/images', rearrangeImagesOfProduct)
+router.delete('/:productId/images/:imageId', deleteImageOfProduct)
+
 
 
 export const productsRoute = router;

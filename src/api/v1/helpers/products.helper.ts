@@ -4,6 +4,7 @@ import path from 'path';
 import { ProductImageModel } from '../data-models';
 import { existsSync, mkdirSync, writeFile } from 'fs';
 import { ClientSession, Document, Types } from 'mongoose';
+import { unlink } from 'fs/promises';
 
 /**
  * Create image in the database.
@@ -65,6 +66,20 @@ export const uploadProductImageFile = async (imgFile: Express.Multer.File): Prom
 };
 
 /**
+ * 
+ * @param imageFilePath 
+ */
+export const deleteProductImageFile = async (relativeImgPath: string): Promise<void> => {
+  try {
+    const { PUBLIC_DIRECTORY_PATH } = <Record<string, string>>process.env;
+    const absoluteImgPath = path.join(PUBLIC_DIRECTORY_PATH,  relativeImgPath);
+    await unlink(absoluteImgPath);
+  } catch (error) {
+    throw new Error(`Error deleting image.`);
+  }
+}
+
+/**
  * Compress image under the size of 100 KB
  * @param imgFile 
  * @param targetSize 
@@ -92,4 +107,31 @@ export const compressImage = async (imgFile: Express.Multer.File, targetSize: nu
   } catch (error) {
     throw error;
   }
+};
+
+/**
+ * 
+ * @param arr1
+ * @param arr2
+ * @returns
+ */
+export const doesArraysHaveSimilarElements = (arr1: Array<any>, arr2: Array<any>): boolean => {
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+
+  const set1 = new Set(arr1);
+  const set2 = new Set(arr2);
+
+  if (set1.size !== set2.size) {
+    return false;
+  }
+
+  for (let item of set1) {
+    if (!set2.has(item)) {
+      return false;
+    }
+  }
+
+  return true;
 };
