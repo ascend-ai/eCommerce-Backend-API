@@ -1,9 +1,29 @@
-import { NextFunction, Response } from 'express';
-import { CreateProductDto, CustomError, CustomSuccess, GetUserAuthInfoRequestInterface, MAX_IMAGES_PER_PRODUCT, ProductCategoryInterface } from '../shared';
+import {
+  NextFunction,
+  Response
+} from 'express';
+import {
+  CreateProductDto,
+  CustomError,
+  CustomSuccess,
+  DEFAULT_PAGINATION_PAGE,
+  DEFAULT_PAGINATION_SIZE,
+  GetUserAuthInfoRequestInterface,
+  MAX_IMAGES_PER_PRODUCT,
+  Pagination,
+} from '../shared';
 import mongoose, { ClientSession, Types } from 'mongoose';
-import { ProductCategoryModel, ProductImageModel, ProductModel } from '../data-models';
-import { createProductImage, deleteProductImageFile, doesArraysHaveSimilarElements, uploadProductImageFile } from '../helpers';
-import { arrayBuffer } from 'stream/consumers';
+import {
+  ProductCategoryModel,
+  ProductImageModel,
+  ProductModel
+} from '../data-models';
+import {
+  createProductImage,
+  deleteProductImageFile,
+  doesArraysHaveSimilarElements,
+  uploadProductImageFile
+} from '../helpers';
 
 
 export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
@@ -16,8 +36,16 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
     const product = new ProductModel({
       name: productData.name,
       description: productData.description,
-      quantityInStock: productData.quantityInStock
+      quantityInStock: productData.quantityInStock,
+      category: productData.category
     });
+
+    // TODO Requirement for handling categories is changed.
+    // const product = new ProductModel({
+    //   name: productData.name,
+    //   description: productData.description,
+    //   quantityInStock: productData.quantityInStock
+    // });
 
     if (!Array.isArray(productImgFiles)) {
       throw new Error(`Image files not present.`);
@@ -32,15 +60,24 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
       product.images?.push(productImgId);
     }
 
-    for (let categoryName of <Array<string>>productData.categories) {
-      let productCategory = await ProductCategoryModel.findOne({ name: categoryName });
-      if (!productCategory) {
-        productCategory = await ProductCategoryModel.create({
-          name: categoryName
-        });
+    for (let productId of <Array<Types.ObjectId>>productData.similarProducts) {
+      const similarProduct = await ProductModel.findById(productId);
+      if (!similarProduct) {
+        throw new Error(`Product with id ${productId} from similar product array not found`);
       }
-      product.categories?.push(productCategory._id);
+      product.similarProducts.push(productId);
     }
+
+    // TODO Requirement for handling categories is changed.
+    // for (let categoryName of <Array<string>>productData.categories) {
+    //   let productCategory = await ProductCategoryModel.findOne({ name: categoryName });
+    //   if (!productCategory) {
+    //     productCategory = await ProductCategoryModel.create({
+    //       name: categoryName
+    //     });
+    //   }
+    //   product.categories?.push(productCategory._id);
+    // }
 
     await product.save({ session });
     await session.commitTransaction();
@@ -61,11 +98,30 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
 
 export const getProducts = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
   try {
+    const page = parseInt(<string>req.query.page) || DEFAULT_PAGINATION_PAGE;
+    const size = parseInt(<string>req.query.size) || DEFAULT_PAGINATION_SIZE;
+    const totalElements = await ProductModel.countDocuments();
+    let totalPages = Math.floor(totalElements / size);
+    if ((totalElements % size) > 0) {
+      totalPages += 1;
+    }
+
     const products = await ProductModel
       .find()
+      .skip(page * size)
+      .limit(size)
       .populate('images')
-      .populate('categories');
-    return next(new CustomSuccess(products, 200));
+      .populate('similarProducts');
+
+    const pagination = new Pagination(
+      products,
+      totalElements,
+      totalPages,
+      page,
+      size
+    );
+
+    return next(new CustomSuccess(pagination, 200));
   } catch (error: any) {
     return next(new CustomError(error.message, 500));
   }
@@ -77,7 +133,7 @@ export const getProduct = async (req: GetUserAuthInfoRequestInterface, res: Resp
     const product = await ProductModel
       .findById(productId)
       .populate('images')
-      .populate('categories');
+      .populate('similarProducts');
 
     if (!product) {
       throw new Error(`Product with id ${productId} not found.`);
@@ -95,7 +151,9 @@ export const addNewImageOfProduct = async (req: GetUserAuthInfoRequestInterface,
     const productImgFile = <Express.Multer.File>req?.file;
     const { productId } = req.params;
 
-    const product = await ProductModel.findById(productId);
+    const product = await ProductModel
+      .findById(productId)
+      .populate('images');
 
     if (!productImgFile) {
       throw new Error(`Image not uploaded.`);
@@ -133,7 +191,9 @@ export const deleteImageOfProduct = async (req: GetUserAuthInfoRequestInterface,
   try {
     const { productId, imageId } = req.params;
 
-    const product = await ProductModel.findById(productId);
+    const product = await ProductModel
+      .findById(productId)
+      .populate('images');
 
     const image  = await ProductImageModel.findById(imageId);
 
@@ -176,7 +236,9 @@ export const rearrangeImagesOfProduct = async (req: GetUserAuthInfoRequestInterf
     const { productId } = req.params;
     const rearrangedImages: Array<string> = req.body;
 
-    const product = await ProductModel.findById(productId);
+    const product = await ProductModel
+      .findById(productId)
+      .populate('images');
 
     if (!product) {
       throw new Error(`Product with id ${productId} not found`);
@@ -202,5 +264,80 @@ export const rearrangeImagesOfProduct = async (req: GetUserAuthInfoRequestInterf
 
   } catch (error: any) {
     return next(new CustomError(error.message, 400));
+  }
+};
+
+export const editNameOfProduct = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  try {
+    const { productId } = req.params;
+    const newProductName = req.body.name;
+
+    if (!newProductName) {
+      throw new Error(`New product name not present`);
+    }
+
+    const product = await ProductModel
+      .findById(productId)
+      .populate('images');
+
+    if (!product) {
+      throw new Error(`Product with id ${productId} not found.`);
+    }
+
+    product.name = newProductName;
+    await product.save();
+    return next(new CustomSuccess(product, 200));
+  } catch (error: any) {
+    return next(new CustomError(error.message, 500));
+  }
+};
+
+export const editQuantityOfProduct = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  try {
+    const { productId } = req.params;
+    const newProductQuantity = req.body.quantityInStock;
+
+    if (!newProductQuantity) {
+      throw new Error(`New product quantity not present`);
+    }
+
+    const product = await ProductModel
+      .findById(productId)
+      .populate('images');
+
+    if (!product) {
+      throw new Error(`Product with id ${productId} not found.`);
+    }
+
+    product.quantityInStock = newProductQuantity;
+    await product.save();
+    return next(new CustomSuccess(product, 200));
+  } catch (error: any) {
+    return next(new CustomError(error.message, 500));
+  }
+};
+
+export const editDescriptionOfProduct = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  try {
+    const { productId } = req.params;
+    const newProductDescription = req.body.description;
+
+    if (!newProductDescription) {
+      throw new Error(`New product description not present`);
+    }
+
+    const product = await ProductModel
+      .findById(productId)
+      .populate('images');
+
+    if (!product) {
+      throw new Error(`Product with id ${productId} not found.`);
+    }
+
+    product.description = newProductDescription;
+    await product.save();
+    return next(new CustomSuccess(product, 200));
+  } catch (error: any) {
+    return next(new CustomError(error.message, 500));
   }
 };

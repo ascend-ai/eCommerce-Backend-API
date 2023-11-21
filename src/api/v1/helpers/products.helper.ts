@@ -1,9 +1,9 @@
 import sharp from 'sharp';
-import { ACCEPTED_IMG_EXTENSIONS, ProductInterface, TARGETED_IMG_SIZE } from '../shared';
+import { ACCEPTED_IMG_EXTENSIONS, TARGETED_IMG_SIZE } from '../shared';
 import path from 'path';
 import { ProductImageModel } from '../data-models';
 import { existsSync, mkdirSync, writeFile } from 'fs';
-import { ClientSession, Document, Types } from 'mongoose';
+import { ClientSession, Types } from 'mongoose';
 import { unlink } from 'fs/promises';
 
 /**
