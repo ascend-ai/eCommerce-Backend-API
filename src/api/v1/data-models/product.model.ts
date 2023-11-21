@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { MAX_IMAGES_PER_PRODUCT, MIN_IMAGES_PER_PRODUCT, ProductInterface } from '../shared';
+import { Categories, MAX_IMAGES_PER_PRODUCT, MIN_IMAGES_PER_PRODUCT, ProductInterface } from '../shared';
 
 const productSchema = new mongoose.Schema<ProductInterface>({
   name: {
@@ -42,12 +42,31 @@ const productSchema = new mongoose.Schema<ProductInterface>({
       message: 'The images array should contain no more than 3 elements.',
     },
   },
-  categories: [
+  category: {
+    type: String,
+    enum: [
+      Categories.ANKLET,
+      Categories.BODY_JEWELLERY,
+      Categories.BRACELET,
+      Categories.EARRING,
+      Categories.NECKLACE,
+      Categories.OTHERS,
+      Categories.PHONE_STRAP,
+    ],
+  },
+  similarProducts: [
     {
       type: Schema.Types.ObjectId,
-      ref: 'ProductCategory',
+      ref: 'Product'
     }
-  ],
+  ]
+  // TODO Requirement for handling categories is changed.
+  // categories: [
+  //   {
+  //     type: Schema.Types.ObjectId,
+  //     ref: 'ProductCategory',
+  //   }
+  // ],
 });
 
 

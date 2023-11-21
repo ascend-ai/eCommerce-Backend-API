@@ -40,7 +40,11 @@ const userSchema = new mongoose.Schema<UserInterface>({
   },
   role: {
     type: String,
-    enum: [UserRole.ADMIN, UserRole.MODERATOR, UserRole.CUSTOMER],
+    enum: [
+      UserRole.ADMIN,
+      UserRole.MODERATOR,
+      UserRole.CUSTOMER
+    ],
     default: UserRole.CUSTOMER
   },
   phoneNumber: {
