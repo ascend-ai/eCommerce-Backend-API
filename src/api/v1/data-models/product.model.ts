@@ -17,6 +17,10 @@ const productSchema = new mongoose.Schema<ProductInterface>({
       message: 'Description should be minimum 5 and maximum 1000 characters long.'
     }
   },
+  isPopular: {
+    type: Boolean,
+    default: false
+  },
   quantityInStock: {
     type: Number,
     validate: {
@@ -53,6 +57,7 @@ const productSchema = new mongoose.Schema<ProductInterface>({
       Categories.OTHERS,
       Categories.PHONE_STRAP,
     ],
+    default: Categories.OTHERS
   },
   similarProducts: [
     {
