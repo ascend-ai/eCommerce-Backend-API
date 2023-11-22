@@ -5,6 +5,7 @@ import { ProductInterface } from '../interfaces';
 export class CreateProductDto implements Partial<ProductInterface> {
   name: string;
   description: string;
+  isPopular: boolean;
   quantityInStock: number;
   category: string;
   similarProducts: Array<Types.ObjectId>;
@@ -12,9 +13,11 @@ export class CreateProductDto implements Partial<ProductInterface> {
   // categories?: Array<string>;
 
   constructor(reqBody: Record<string, any>) {
+    console.log(reqBody.isPopular);
     this.name = reqBody?.name || '';
     this.description = reqBody?.description || '';
-    this.quantityInStock = reqBody?.quantityInStock || '';
+    this.isPopular = (reqBody?.isPopular === 'true');
+    this.quantityInStock = parseInt(reqBody?.quantityInStock) || 1;
     this.category = reqBody?.category || Categories.OTHERS;
     if (!(typeof reqBody?.similarProducts === 'undefined')) {
       if (this._isValidArrayOfStringsJSON(reqBody?.similarProducts)) {

@@ -14,7 +14,6 @@ import {
 } from '../shared';
 import mongoose, { ClientSession, Types } from 'mongoose';
 import {
-  ProductCategoryModel,
   ProductImageModel,
   ProductModel
 } from '../data-models';
@@ -37,7 +36,8 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
       name: productData.name,
       description: productData.description,
       quantityInStock: productData.quantityInStock,
-      category: productData.category
+      category: productData.category,
+      isPopular: productData.isPopular
     });
 
     // TODO Requirement for handling categories is changed.
@@ -110,8 +110,7 @@ export const getProducts = async (req: GetUserAuthInfoRequestInterface, res: Res
       .find()
       .skip(page * size)
       .limit(size)
-      .populate('images')
-      .populate('similarProducts');
+      .populate('images');
 
     const pagination = new Pagination(
       products,
@@ -132,8 +131,7 @@ export const getProduct = async (req: GetUserAuthInfoRequestInterface, res: Resp
     const { productId } = req.params;
     const product = await ProductModel
       .findById(productId)
-      .populate('images')
-      .populate('similarProducts');
+      .populate('images');
 
     if (!product) {
       throw new Error(`Product with id ${productId} not found.`);
