@@ -1,5 +1,5 @@
 import mongoose, { CallbackWithoutResultAndOptionalError } from 'mongoose';
-import { getHashedPassword } from '../helpers';
+import { getHashedPassword } from '../shared';
 import { EMAIL_REGEX, PASSWORD_REGEX, PHONE_NUMBER_REGEX, UserInterface, UserRole } from '../shared';
 
 const userSchema = new mongoose.Schema<UserInterface>({
