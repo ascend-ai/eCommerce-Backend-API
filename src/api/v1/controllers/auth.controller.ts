@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { UserModel } from '../data-models';
-import { getAccessToken, isPasswordValid } from '../helpers';
+import { getAccessToken, isPasswordValid } from '../shared';
 import { CustomError, CustomSuccess } from '../shared';
 import { AuthCredentialsDto } from '../shared';
 

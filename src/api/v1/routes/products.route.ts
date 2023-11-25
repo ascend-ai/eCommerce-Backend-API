@@ -11,6 +11,8 @@ import {
   editNameOfProduct,
   editQuantityOfProduct,
   editDescriptionOfProduct,
+  editCategoryOfProduct,
+  editSimilarProductsOfProduct
 } from '../controllers';
 import { isAuthenticateUserAdminOrMod, isAuthenticated } from '../shared';
 
@@ -32,7 +34,9 @@ router.put('/:productId/images', rearrangeImagesOfProduct);
 router.put('/:productId/name', editNameOfProduct);
 router.put('/:productId/quantity', editQuantityOfProduct);
 router.put('/:productId/description', editDescriptionOfProduct);
-router.delete('/:productId/images/:imageId', deleteImageOfProduct)
+router.put('/:productId/category', editCategoryOfProduct);
+router.put('/:productId/similar-products', editSimilarProductsOfProduct);
+router.delete('/:productId/images/:imageId', deleteImageOfProduct);
 
 
 

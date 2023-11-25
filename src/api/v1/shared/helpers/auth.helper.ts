@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
-import { AccessTokenPayloadInterface } from '../shared';
+import { AccessTokenPayloadInterface } from '..';
 
 /**
  * 

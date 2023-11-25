@@ -11,6 +11,8 @@ import {
   GetUserAuthInfoRequestInterface,
   MAX_IMAGES_PER_PRODUCT,
   Pagination,
+  convertArrayOfStringsIntoArrayOfMongooseIds,
+  isValidArrayOfStrings,
 } from '../shared';
 import mongoose, { ClientSession, Types } from 'mongoose';
 import {
@@ -22,7 +24,7 @@ import {
   deleteProductImageFile,
   doesArraysHaveSimilarElements,
   uploadProductImageFile
-} from '../helpers';
+} from '../shared';
 
 
 export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
@@ -333,6 +335,72 @@ export const editDescriptionOfProduct = async (req: GetUserAuthInfoRequestInterf
     }
 
     product.description = newProductDescription;
+    await product.save();
+    return next(new CustomSuccess(product, 200));
+  } catch (error: any) {
+    return next(new CustomError(error.message, 500));
+  }
+};
+
+export const editCategoryOfProduct = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  try {
+    const { productId } = req.params;
+    const newProductCategory = req.body.category;
+
+    if (!newProductCategory) {
+      throw new Error(`New product category not present`);
+    }
+
+    const product = await ProductModel
+      .findById(productId)
+      .populate('images');
+
+    if (!product) {
+      throw new Error(`Product with id ${productId} not found.`);
+    }
+
+    product.category = newProductCategory;
+    await product.save();
+    return next(new CustomSuccess(product, 200));
+  } catch (error: any) {
+    return next(new CustomError(error.message, 500));
+  }
+};
+
+export const editSimilarProductsOfProduct = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  try {
+    const { productId } = req.params;
+
+    if (!req.body) {
+      throw new Error(`Array of new similar products not present`);
+    }
+
+    if (!isValidArrayOfStrings(req.body)) {
+      throw new Error(`Invalid array of new similar products`)
+    }
+    const newSimilarProductsArray = convertArrayOfStringsIntoArrayOfMongooseIds(req.body);
+
+    const product = await ProductModel
+      .findById(productId)
+      .populate('images');
+
+    if (!product) {
+      throw new Error(`Product with id ${productId} not found.`);
+    }
+
+    product.similarProducts = [];
+
+    for (let productId of newSimilarProductsArray) {
+      if (productId.toString() === product._id.toString()) {
+        throw new Error(`Cannot add product itself as a similar product`);
+      }
+      const similarProduct = await ProductModel.findById(productId);
+      if (!similarProduct) {
+        throw new Error(`Product with id ${productId} from similar product array not found`);
+      }
+      product.similarProducts.push(productId);
+    }
+
     await product.save();
     return next(new CustomSuccess(product, 200));
   } catch (error: any) {

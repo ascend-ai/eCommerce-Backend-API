@@ -1,6 +1,11 @@
 import { Types } from 'mongoose';
 import { Categories } from '../enums';
 import { ProductInterface } from '../interfaces';
+import {
+  convertArrayOfStringsIntoArrayOfMongooseIds,
+  isValidJsonString,
+  isValidArrayOfStrings
+} from '../../shared';
 
 export class CreateProductDto implements Partial<ProductInterface> {
   name: string;
@@ -20,9 +25,11 @@ export class CreateProductDto implements Partial<ProductInterface> {
     this.quantityInStock = parseInt(reqBody?.quantityInStock) || 1;
     this.category = reqBody?.category || Categories.OTHERS;
     if (!(typeof reqBody?.similarProducts === 'undefined')) {
-      if (this._isValidArrayOfStringsJSON(reqBody?.similarProducts)) {
-        this.similarProducts = [...new Set((<Array<string>>JSON.parse(reqBody?.similarProducts)))]
-          .map(productId => new Types.ObjectId(productId));
+      if (isValidJsonString(reqBody?.similarProducts) &&
+          isValidArrayOfStrings(JSON.parse(reqBody?.similarProducts))) {
+        this.similarProducts = convertArrayOfStringsIntoArrayOfMongooseIds(
+          <Array<string>>JSON.parse(reqBody?.similarProducts)
+        );
       } else {
         throw new Error(`Invalid JSON array of similar products`);
       }
@@ -40,14 +47,5 @@ export class CreateProductDto implements Partial<ProductInterface> {
     // } else {
     //   this.categories = [];
     // }
-  }
-
-  private _isValidArrayOfStringsJSON(jsonString: string): boolean {
-    try {
-      const parsedData = JSON.parse(jsonString);
-      return Array.isArray(parsedData) && parsedData.every(item => typeof item === 'string');
-    } catch (error: any) {
-      return false;
-    }
   }
 }
