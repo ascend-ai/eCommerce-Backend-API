@@ -12,7 +12,8 @@ import {
   editQuantityOfProduct,
   editDescriptionOfProduct,
   editCategoryOfProduct,
-  editSimilarProductsOfProduct
+  editSimilarProductsOfProduct,
+  getProductsWithIds
 } from '../controllers';
 import { isAuthenticateUserAdminOrMod, isAuthenticated } from '../shared';
 
@@ -21,6 +22,7 @@ const upload = multer();
 
 // * UNAUTHORIZED ROUTES
 router.get('/', getProducts);
+router.get('/with-ids', getProductsWithIds);
 router.get('/:productId', getProduct);
 
 // * AUTHORIZED ROUTES - CUSTOMER

@@ -13,7 +13,7 @@ export const isValidArrayOfStrings = (data: any): boolean => {
   return Array.isArray(data) && data.every(item => typeof item === 'string');
 };
 
-export const convertArrayOfStringsIntoArrayOfMongooseIds = (arrOfStr: Array<string>): Array<Types.ObjectId> => {
+export const convertStringIdsToObjectId = (arrOfStr: Array<string>): Array<Types.ObjectId> => {
   return [...new Set((arrOfStr))]
       .map(productId => new Types.ObjectId(productId));
 }
