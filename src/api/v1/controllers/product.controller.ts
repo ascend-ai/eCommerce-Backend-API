@@ -11,7 +11,8 @@ import {
   GetUserAuthInfoRequestInterface,
   MAX_IMAGES_PER_PRODUCT,
   Pagination,
-  convertArrayOfStringsIntoArrayOfMongooseIds,
+  ProductInterface,
+  convertStringIdsToObjectId,
   isValidArrayOfStrings,
 } from '../shared';
 import mongoose, { ClientSession, Types } from 'mongoose';
@@ -139,6 +140,37 @@ export const getProduct = async (req: GetUserAuthInfoRequestInterface, res: Resp
       throw new Error(`Product with id ${productId} not found.`);
     }
     return next(new CustomSuccess(product, 200));
+  } catch (error: any) {
+    return next(new CustomError(error.message, 500));
+  }
+};
+
+export const getProductsWithIds = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  try {
+
+    if (!req.body) {
+      throw new Error(`Array of product ids not present`);
+    }
+
+    if (!isValidArrayOfStrings(req.body)) {
+      throw new Error(`Invalid array of product ids`)
+    }
+    const productIds = convertStringIdsToObjectId(req.body);
+
+    const products: Array<any> = [];
+
+    for (let productId of productIds) {
+      const product = await ProductModel.findById(productId);
+
+      if (!product) {
+        throw new Error(`Product with id ${productId} doesn't exist`);
+      }
+
+      products.push(product);
+    }
+
+    
+    return next(new CustomSuccess(products, 200));
   } catch (error: any) {
     return next(new CustomError(error.message, 500));
   }
@@ -378,7 +410,7 @@ export const editSimilarProductsOfProduct = async (req: GetUserAuthInfoRequestIn
     if (!isValidArrayOfStrings(req.body)) {
       throw new Error(`Invalid array of new similar products`)
     }
-    const newSimilarProductsArray = convertArrayOfStringsIntoArrayOfMongooseIds(req.body);
+    const newSimilarProductsArray = convertStringIdsToObjectId(req.body);
 
     const product = await ProductModel
       .findById(productId)

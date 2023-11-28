@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 import { Categories } from '../enums';
 import { ProductInterface } from '../interfaces';
 import {
-  convertArrayOfStringsIntoArrayOfMongooseIds,
+  convertStringIdsToObjectId,
   isValidJsonString,
   isValidArrayOfStrings
 } from '../../shared';
@@ -27,7 +27,7 @@ export class CreateProductDto implements Partial<ProductInterface> {
     if (!(typeof reqBody?.similarProducts === 'undefined')) {
       if (isValidJsonString(reqBody?.similarProducts) &&
           isValidArrayOfStrings(JSON.parse(reqBody?.similarProducts))) {
-        this.similarProducts = convertArrayOfStringsIntoArrayOfMongooseIds(
+        this.similarProducts = convertStringIdsToObjectId(
           <Array<string>>JSON.parse(reqBody?.similarProducts)
         );
       } else {
