@@ -1,5 +1,4 @@
-import mongoose, { Connection, Mongoose } from 'mongoose';
-import colors from 'colors';
+import mongoose, { Connection } from 'mongoose';
 
 export const connectToDatabase = async (): Promise<Connection> => {
   const { DATABASE_URI } = <Record<string, string>>process.env;

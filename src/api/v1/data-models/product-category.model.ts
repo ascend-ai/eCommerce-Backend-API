@@ -1,5 +1,9 @@
 import mongoose from 'mongoose';
-import { PRODUCT_CATEGORY_NAME_REGEX, ProductCategoryInterface } from '../shared';
+
+import {
+  PRODUCT_CATEGORY_NAME_REGEX,
+  ProductCategoryInterface
+} from '../shared';
 
 const productCategorySchema = new mongoose.Schema<ProductCategoryInterface>({
   name: {

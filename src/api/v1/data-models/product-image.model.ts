@@ -1,5 +1,8 @@
 import mongoose from 'mongoose';
-import { ProductImageInterface } from '../shared';
+
+import {
+  ProductImageInterface
+} from '../shared';
 
 const productImageSchema = new mongoose.Schema<ProductImageInterface>({
   url: {

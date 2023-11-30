@@ -2,6 +2,8 @@ import {
   NextFunction,
   Response
 } from 'express';
+import mongoose, { ClientSession, Types } from 'mongoose';
+
 import {
   CreateProductDto,
   CustomError,
@@ -11,21 +13,17 @@ import {
   GetUserAuthInfoRequestInterface,
   MAX_IMAGES_PER_PRODUCT,
   Pagination,
-  ProductInterface,
   convertStringIdsToObjectId,
   isValidArrayOfStrings,
-} from '../shared';
-import mongoose, { ClientSession, Types } from 'mongoose';
-import {
-  ProductImageModel,
-  ProductModel
-} from '../data-models';
-import {
   createProductImage,
   deleteProductImageFile,
   doesArraysHaveSimilarElements,
   uploadProductImageFile
 } from '../shared';
+import {
+  ProductImageModel,
+  ProductModel
+} from '../data-models';
 
 
 export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
@@ -40,7 +38,8 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
       description: productData.description,
       quantityInStock: productData.quantityInStock,
       category: productData.category,
-      isPopular: productData.isPopular
+      isPopular: productData.isPopular,
+      price: productData.price,
     });
 
     // TODO Requirement for handling categories is changed.
