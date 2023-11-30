@@ -1,5 +1,11 @@
 import mongoose, { Schema } from 'mongoose';
-import { Categories, MAX_IMAGES_PER_PRODUCT, MIN_IMAGES_PER_PRODUCT, ProductInterface } from '../shared';
+
+import {
+  Categories,
+  MAX_IMAGES_PER_PRODUCT,
+  MIN_IMAGES_PER_PRODUCT,
+  ProductInterface
+} from '../shared';
 
 const productSchema = new mongoose.Schema<ProductInterface>({
   name: {
@@ -20,6 +26,16 @@ const productSchema = new mongoose.Schema<ProductInterface>({
   isPopular: {
     type: Boolean,
     default: false
+  },
+  price: {
+    type: Number,
+    validate: {
+      validator: function (value: number) {
+        return value > 0;
+      },
+      message: 'Price cannot be less than 0.',
+    },
+    required: true
   },
   quantityInStock: {
     type: Number,

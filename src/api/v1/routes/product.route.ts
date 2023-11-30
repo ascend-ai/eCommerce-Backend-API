@@ -1,6 +1,6 @@
 import multer from 'multer';
-
 import express from 'express';
+
 import {
   addNewImageOfProduct,
   createProduct,
@@ -15,7 +15,10 @@ import {
   editSimilarProductsOfProduct,
   getProductsWithIds
 } from '../controllers';
-import { isAuthenticateUserAdminOrMod, isAuthenticated } from '../shared';
+import {
+  isAuthenticateUserAdminOrMod,
+  isAuthenticated
+} from '../shared';
 
 const router = express.Router();
 const upload = multer();
@@ -42,4 +45,4 @@ router.delete('/:productId/images/:imageId', deleteImageOfProduct);
 
 
 
-export const productsRoute = router;
+export const productRoutes = router;

@@ -10,9 +10,10 @@ import {
 export class CreateProductDto implements Partial<ProductInterface> {
   name: string;
   description: string;
-  isPopular: boolean;
   quantityInStock: number;
   category: string;
+  isPopular: boolean;
+  price: number;
   similarProducts: Array<Types.ObjectId>;
   // TODO Requirement for handling categories is changed.
   // categories?: Array<string>;
@@ -22,7 +23,8 @@ export class CreateProductDto implements Partial<ProductInterface> {
     this.name = reqBody?.name || '';
     this.description = reqBody?.description || '';
     this.isPopular = (reqBody?.isPopular === 'true');
-    this.quantityInStock = parseInt(reqBody?.quantityInStock) || 1;
+    this.price = parseFloat(reqBody?.price) || 0;
+    this.quantityInStock = parseInt(reqBody?.quantityInStock) || 0;
     this.category = reqBody?.category || Categories.OTHERS;
     if (!(typeof reqBody?.similarProducts === 'undefined')) {
       if (isValidJsonString(reqBody?.similarProducts) &&

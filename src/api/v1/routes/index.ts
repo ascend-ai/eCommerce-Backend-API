@@ -1,2 +1,3 @@
 export * from './auth.route';
-export * from './products.route';
+export * from './order.route';
+export * from './product.route';
