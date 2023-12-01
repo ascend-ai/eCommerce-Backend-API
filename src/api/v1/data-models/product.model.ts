@@ -4,6 +4,8 @@ import {
   Categories,
   MAX_IMAGES_PER_PRODUCT,
   MIN_IMAGES_PER_PRODUCT,
+  MIN_PRODUCT_PRICE,
+  MIN_QTY_IN_STOCK,
   ProductInterface
 } from '../shared';
 
@@ -31,7 +33,7 @@ const productSchema = new mongoose.Schema<ProductInterface>({
     type: Number,
     validate: {
       validator: function (value: number) {
-        return value > 0;
+        return value >= MIN_PRODUCT_PRICE;
       },
       message: 'Price cannot be less than 0.',
     },
@@ -41,7 +43,7 @@ const productSchema = new mongoose.Schema<ProductInterface>({
     type: Number,
     validate: {
       validator: function (value: number) {
-        return value >= 0;
+        return value >= MIN_QTY_IN_STOCK;
       },
       message: 'Quantity cannot be less than 0.',
     },

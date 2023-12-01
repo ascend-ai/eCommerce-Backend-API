@@ -1,10 +1,13 @@
 import { Types } from 'mongoose';
-import { Categories } from '../enums';
-import { ProductInterface } from '../interfaces';
+
 import {
   convertStringIdsToObjectId,
   isValidJsonString,
-  isValidArrayOfStrings
+  isValidArrayOfStrings,
+  Categories,
+  ProductInterface,
+  MIN_PRODUCT_PRICE,
+  MIN_QTY_IN_STOCK
 } from '../../shared';
 
 export class CreateProductDto implements Partial<ProductInterface> {
@@ -19,12 +22,11 @@ export class CreateProductDto implements Partial<ProductInterface> {
   // categories?: Array<string>;
 
   constructor(reqBody: Record<string, any>) {
-    console.log(reqBody.isPopular);
     this.name = reqBody?.name || '';
     this.description = reqBody?.description || '';
     this.isPopular = (reqBody?.isPopular === 'true');
-    this.price = parseFloat(reqBody?.price) || 0;
-    this.quantityInStock = parseInt(reqBody?.quantityInStock) || 0;
+    this.price = parseFloat(reqBody?.price) || MIN_PRODUCT_PRICE;
+    this.quantityInStock = parseInt(reqBody?.quantityInStock) || MIN_QTY_IN_STOCK;
     this.category = reqBody?.category || Categories.OTHERS;
     if (!(typeof reqBody?.similarProducts === 'undefined')) {
       if (isValidJsonString(reqBody?.similarProducts) &&

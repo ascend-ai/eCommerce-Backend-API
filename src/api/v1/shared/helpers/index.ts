@@ -1,3 +1,4 @@
 export * from './auth.helper';
-export * from './products.helper';
+export * from './product.helper';
 export * from './common.helper';
+export * from './order.helper';

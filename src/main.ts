@@ -4,10 +4,13 @@ import colors from 'colors'
 import { Server } from 'http';
 import morgan from 'morgan';
 import cors from 'cors';
-import * as schedule from 'node-schedule';
 
 import { connectToDatabase } from './config';
-import { outcomeHandler } from './api/v1/shared';
+import {
+  PENDING_ORDER_DELETION_DELAY,
+  deletePendingOrdersPastDelay,
+  outcomeHandler
+} from './api/v1/shared';
 import {
   authRoutes,
   productRoutes,
@@ -43,9 +46,9 @@ connectToDatabase()
   .then(() => {
     server = app.listen(PORT, () => {
       console.log(`Server is running in ${MODE} mode on port ${PORT}`.yellow.bold);
-      // schedule.scheduleJob('* * * * *', () => {
-      //   console.log(`Unhandled orders deleted`.grey);
-      // });
+      setInterval(async () => {
+        await deletePendingOrdersPastDelay();
+      }, PENDING_ORDER_DELETION_DELAY);
     });
   });
 
