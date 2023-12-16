@@ -1,6 +1,12 @@
-import { OrderModel } from '../../data-models';
-import { PENDING_ORDER_DELETION_DELAY } from '../constants';
-import { OrderStatus } from '../enums';
+import {
+  OrderModel
+} from '../../data-models';
+import {
+  PENDING_ORDER_DELETION_DELAY
+} from '../constants';
+import {
+  OrderStatus
+} from '../enums';
 
 /**
  * Delets orders which are still pending past the delay time.

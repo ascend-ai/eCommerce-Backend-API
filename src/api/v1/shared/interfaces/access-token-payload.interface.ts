@@ -1,3 +1,8 @@
+import {
+  UserRole
+} from '../enums';
+
 export interface AccessTokenPayloadInterface {
-  mongoDbUserId: string;
+  userId: string;
+  userRole: UserRole
 }

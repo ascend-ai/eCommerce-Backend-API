@@ -1,4 +1,7 @@
-import { AddressInterface, UserInterface } from '../interfaces';
+import {
+  AddressInterface,
+  UserInterface
+} from '../interfaces';
 
 export class AuthCredentialsDto implements Partial<UserInterface> {
   email: string;

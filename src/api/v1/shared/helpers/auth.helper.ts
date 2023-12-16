@@ -1,6 +1,10 @@
 import bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
-import { AccessTokenPayloadInterface } from '..';
+
+import {
+  AccessTokenPayloadInterface,
+  JWT_EXPIRATION_TIME
+} from '..';
 
 /**
  * 
@@ -13,7 +17,7 @@ export const getAccessToken = (payload: AccessTokenPayloadInterface) => {
     payload,
     ACCESS_TOKEN_SECRET,
     {
-      expiresIn: 86400
+      expiresIn: JWT_EXPIRATION_TIME
     }
   );
   return accessToken;

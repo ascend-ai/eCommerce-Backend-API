@@ -1,5 +1,9 @@
-import { UserRole } from '../enums';
-import { AddressInterface } from './address.interface';
+import {
+  UserRole
+} from '../enums';
+import {
+  AddressInterface
+} from '.';
 
 export interface UserInterface {
   email: string,
