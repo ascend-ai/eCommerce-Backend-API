@@ -1,11 +1,25 @@
 import sharp from 'sharp';
 import path from 'path';
-import { existsSync, mkdirSync, writeFile } from 'fs';
-import { ClientSession, Types } from 'mongoose';
-import { unlink } from 'fs/promises';
+import {
+  existsSync,
+  mkdirSync,
+  writeFile
+} from 'fs';
+import {
+  ClientSession,
+  Types
+} from 'mongoose';
+import {
+  unlink
+} from 'fs/promises';
 
-import { ProductImageModel } from '../../data-models';
-import { ACCEPTED_IMG_EXTENSIONS, TARGETED_IMG_SIZE } from '..';
+import {
+  ProductImageModel
+} from '../../data-models';
+import {
+  ACCEPTED_IMG_EXTENSIONS,
+  TARGETED_IMG_SIZE 
+} from '..';
 
 /**
  * Create image in the database.

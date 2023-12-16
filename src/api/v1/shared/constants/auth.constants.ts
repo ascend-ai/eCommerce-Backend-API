@@ -16,3 +16,8 @@ export const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-
  * Regex from https://stackoverflow.com/a/16699507/14872437
  */
 export const PHONE_NUMBER_REGEX = /^(\+\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
+
+/**
+ * 24 hrs (In seconds)
+ */
+export const JWT_EXPIRATION_TIME = 86400;

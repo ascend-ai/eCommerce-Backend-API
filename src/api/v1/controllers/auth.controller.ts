@@ -34,7 +34,8 @@ export const signIn = async (req: Request, res: Response, next: NextFunction) =>
       throw new Error('Incorrect email or password');
     }
     const accessToken = getAccessToken({
-      mongoDbUserId: user._id.toString()
+      userId: user._id.toString(),
+      userRole: user.role
     });
     next(new CustomSuccess({ accessToken }, 200));
   } catch (error: any) {

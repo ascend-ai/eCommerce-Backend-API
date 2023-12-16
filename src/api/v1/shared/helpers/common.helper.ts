@@ -1,4 +1,6 @@
-import { Types } from 'mongoose';
+import {
+  Types
+} from 'mongoose';
 
 export const isValidJsonString = (str: string): boolean => {
   try {

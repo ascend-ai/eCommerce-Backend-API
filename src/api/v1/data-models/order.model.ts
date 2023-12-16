@@ -1,6 +1,9 @@
-import mongoose, { Schema, Types } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
-import { OrderInterface, OrderStatus } from '../shared';
+import {
+  OrderInterface,
+  OrderStatus
+} from '../shared';
 
 const orderSchema = new mongoose.Schema<OrderInterface>({
   user: {

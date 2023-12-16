@@ -1,5 +1,10 @@
-import { Types } from 'mongoose';
-import { OrderStatus } from '../enums';
+import {
+  Types
+} from 'mongoose';
+
+import {
+  OrderStatus
+} from '../enums';
 
 export interface OrderInterface {
   user: Types.ObjectId;

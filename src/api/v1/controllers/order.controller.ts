@@ -2,10 +2,18 @@ import {
   NextFunction,
   Response
 } from 'express';
-import mongoose, { ClientSession, Types } from 'mongoose';
-
-import { ACCEPTED_CURRENCY, CustomError, CustomSuccess, GetUserAuthInfoRequestInterface, MIN_ORDERABLE_PRODUCT_QTY } from '../shared';
+import {
+  Types
+} from 'mongoose';
 import Razorpay from 'razorpay';
+
+import {
+  ACCEPTED_CURRENCY,
+  CustomError,
+  CustomSuccess,
+  GetUserAuthInfoRequestInterface,
+  MIN_ORDERABLE_PRODUCT_QTY
+} from '../shared';
 import { razorpayConfig } from '../../../config';
 import { OrderModel, ProductModel } from '../data-models';
 

@@ -1,22 +1,26 @@
 import express, { NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import colors from 'colors'
-import { Server } from 'http';
+import {
+  Server
+} from 'http';
 import morgan from 'morgan';
 import cors from 'cors';
 
-import { connectToDatabase } from './config';
+import {
+  connectToDatabase
+} from './config';
 import {
   PENDING_ORDER_DELETION_DELAY,
   deletePendingOrdersPastDelay,
-  outcomeHandler
+  outcomeHandler,
+  CustomError
 } from './api/v1/shared';
 import {
   authRoutes,
   productRoutes,
   orderRoutes
 } from './api/v1/routes';
-import { CustomError } from './api/v1/shared';
 
 dotenv.config();
 colors.enable();

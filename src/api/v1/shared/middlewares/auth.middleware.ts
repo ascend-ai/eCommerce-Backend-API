@@ -1,15 +1,26 @@
-import { NextFunction, Response } from 'express';
+import {
+  NextFunction,
+  Response
+} from 'express';
 import * as jwt from 'jsonwebtoken';
+
 import { UserModel } from '../../data-models';
-import { GetUserAuthInfoRequestInterface, AccessTokenPayloadInterface } from '../interfaces';
-import { CustomError } from '../utility-classes';
-import { UserRole } from '../enums';
+import {
+  GetUserAuthInfoRequestInterface,
+  AccessTokenPayloadInterface
+} from '../interfaces';
+import {
+  CustomError
+} from '../utility-classes';
+import {
+  UserRole
+} from '../enums';
 
 /**
  * Checks whether user is logged in
  */
 export const isAuthenticated = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction): Promise<void> => {
-  const accessToken = req?.headers?.authorization;
+  const accessToken = req?.headers?.authorization?.split(' ')[1];
   const { ACCESS_TOKEN_SECRET } = <Record<string, string>>process.env;
   if (accessToken) {
     try {
@@ -17,7 +28,7 @@ export const isAuthenticated = async (req: GetUserAuthInfoRequestInterface, res:
         accessToken,
         ACCESS_TOKEN_SECRET,
       );
-      const loggedInUserId = embeddedPayloadFromJwt?.mongoDbUserId;
+      const loggedInUserId = embeddedPayloadFromJwt?.userId;
       if (loggedInUserId) {
         const user = await UserModel.findById(loggedInUserId);
         if (user) {
