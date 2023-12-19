@@ -14,7 +14,8 @@ import {
   PENDING_ORDER_DELETION_DELAY,
   deletePendingOrdersPastDelay,
   outcomeHandler,
-  CustomError
+  CustomError,
+  PRODUCT_IMG_UPLOAD_PATH
 } from './api/v1/shared';
 import {
   authRoutes,
@@ -25,12 +26,12 @@ import {
 dotenv.config();
 colors.enable();
 const app = express();
-const { PORT, MODE, PUBLIC_DIRECTORY_PATH } = <Record<string, string>>process.env;
+const { PORT, MODE } = <Record<string, string>>process.env;
 let server: Server;
 
 app.use(cors());
 app.use(morgan('dev'));
-app.use(express.static(PUBLIC_DIRECTORY_PATH));
+app.use(express.static(PRODUCT_IMG_UPLOAD_PATH));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

@@ -18,6 +18,7 @@ import {
 } from '../../data-models';
 import {
   ACCEPTED_IMG_EXTENSIONS,
+  PRODUCT_IMG_UPLOAD_PATH,
   TARGETED_IMG_SIZE 
 } from '..';
 
@@ -59,8 +60,7 @@ export const createProductImage = async (imgFile: Express.Multer.File,
  * @param imgFile 
  */
 export const uploadProductImageFile = async (imgFile: Express.Multer.File): Promise<void> => {
-  const { PUBLIC_DIRECTORY_PATH } = <Record<string, string>>process.env;
-  const UPLOAD_DIRECTORY_PATH = path.join(PUBLIC_DIRECTORY_PATH, 'uploads');
+  const UPLOAD_DIRECTORY_PATH = path.join(PRODUCT_IMG_UPLOAD_PATH, 'uploads');
   const imgPath = path.join(UPLOAD_DIRECTORY_PATH,  imgFile.originalname);
 
   if (!existsSync(UPLOAD_DIRECTORY_PATH)) {
@@ -86,8 +86,7 @@ export const uploadProductImageFile = async (imgFile: Express.Multer.File): Prom
  */
 export const deleteProductImageFile = async (relativeImgPath: string): Promise<void> => {
   try {
-    const { PUBLIC_DIRECTORY_PATH } = <Record<string, string>>process.env;
-    const absoluteImgPath = path.join(PUBLIC_DIRECTORY_PATH,  relativeImgPath);
+    const absoluteImgPath = path.join(PRODUCT_IMG_UPLOAD_PATH,  relativeImgPath);
     await unlink(absoluteImgPath);
   } catch (error) {
     throw new Error(`Error deleting image.`);

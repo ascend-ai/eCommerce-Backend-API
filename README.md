@@ -10,7 +10,8 @@ ACCESS_TOKEN_SECRET=<Your secret key>
 DATABASE_URI=<MongoDB connection url>
 MODE=development
 PORT=<Desired port number>
-PUBLIC_DIRECTORY_PATH=./dist/public
+RAZORPAY_ID=<Razorpay id>
+RAZORPAY_SECRET=<Razorpay secret>
 ```
 
 

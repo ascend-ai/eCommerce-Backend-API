@@ -13,8 +13,10 @@ export const PRODUCT_CATEGORY_NAME_REGEX = /^(?!_)(?!.*__)(?!.*_$)[a-z_]+$/;
 
 export const DEFAULT_PAGINATION_PAGE = 0;
 
-export const DEFAULT_PAGINATION_SIZE = 10;
+export const DEFAULT_PAGINATION_SIZE = 9;
 
 export const MIN_QTY_IN_STOCK = 0;
 
 export const MIN_PRODUCT_PRICE = 1;
+
+export const PRODUCT_IMG_UPLOAD_PATH = './dist/public';
