@@ -83,13 +83,6 @@ const productSchema = new mongoose.Schema<ProductInterface>({
       ref: 'Product'
     }
   ]
-  // TODO Requirement for handling categories is changed.
-  // categories: [
-  //   {
-  //     type: Schema.Types.ObjectId,
-  //     ref: 'ProductCategory',
-  //   }
-  // ],
 });
 
 

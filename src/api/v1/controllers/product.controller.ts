@@ -42,13 +42,6 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
       price: productData.price,
     });
 
-    // TODO Requirement for handling categories is changed.
-    // const product = new ProductModel({
-    //   name: productData.name,
-    //   description: productData.description,
-    //   quantityInStock: productData.quantityInStock
-    // });
-
     if (!Array.isArray(productImgFiles)) {
       throw new Error(`Image files not present.`);
     }
@@ -69,17 +62,6 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
       }
       product.similarProducts.push(productId);
     }
-
-    // TODO Requirement for handling categories is changed.
-    // for (let categoryName of <Array<string>>productData.categories) {
-    //   let productCategory = await ProductCategoryModel.findOne({ name: categoryName });
-    //   if (!productCategory) {
-    //     productCategory = await ProductCategoryModel.create({
-    //       name: categoryName
-    //     });
-    //   }
-    //   product.categories?.push(productCategory._id);
-    // }
 
     await product.save({ session });
     await session.commitTransaction();
@@ -159,7 +141,8 @@ export const getProductsWithIds = async (req: GetUserAuthInfoRequestInterface, r
     const products: Array<any> = [];
 
     for (let productId of productIds) {
-      const product = await ProductModel.findById(productId);
+      const product = await ProductModel.findById(productId)
+        .populate('images');
 
       if (!product) {
         throw new Error(`Product with id ${productId} doesn't exist`);

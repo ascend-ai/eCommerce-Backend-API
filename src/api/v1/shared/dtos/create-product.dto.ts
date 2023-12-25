@@ -18,8 +18,6 @@ export class CreateProductDto implements Partial<ProductInterface> {
   isPopular: boolean;
   price: number;
   similarProducts: Array<Types.ObjectId>;
-  // TODO Requirement for handling categories is changed.
-  // categories?: Array<string>;
 
   constructor(reqBody: Record<string, any>) {
     this.name = reqBody?.name || '';
@@ -40,16 +38,5 @@ export class CreateProductDto implements Partial<ProductInterface> {
     } else {
       this.similarProducts = [];
     }
-
-    // TODO Requirement for handling categories is changed.
-    // if (!(typeof reqBody?.categories === 'undefined')) {
-    //   if (this._isValidArrayOfStringsJSON(reqBody?.categories)) {
-    //     this.categories = JSON.parse(reqBody?.categories);
-    //   } else {
-    //     throw new Error(`Invalid JSON array of strings`);
-    //   }
-    // } else {
-    //   this.categories = [];
-    // }
   }
 }
