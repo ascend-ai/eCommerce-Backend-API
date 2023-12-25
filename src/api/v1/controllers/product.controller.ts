@@ -61,6 +61,8 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
         throw new Error(`Product with id ${productId} from similar product array not found`);
       }
       product.similarProducts.push(productId);
+      similarProduct.similarProducts.push(product._id);
+      similarProduct.save({ session });
     }
 
     await product.save({ session });
@@ -382,6 +384,8 @@ export const editCategoryOfProduct = async (req: GetUserAuthInfoRequestInterface
 };
 
 export const editSimilarProductsOfProduct = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  const session: ClientSession = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { productId } = req.params;
 
@@ -392,7 +396,7 @@ export const editSimilarProductsOfProduct = async (req: GetUserAuthInfoRequestIn
     if (!isValidArrayOfStrings(req.body)) {
       throw new Error(`Invalid array of new similar products`)
     }
-    const newSimilarProductsArray = convertStringIdsToObjectId(req.body);
+    const newSimilarProductList = convertStringIdsToObjectId(req.body);
 
     const product = await ProductModel
       .findById(productId)
@@ -402,22 +406,43 @@ export const editSimilarProductsOfProduct = async (req: GetUserAuthInfoRequestIn
       throw new Error(`Product with id ${productId} not found.`);
     }
 
-    product.similarProducts = [];
+    const removeSimilarProductIds = product.similarProducts.filter(oldProductId => {
+      return !newSimilarProductList.some(newProductId => newProductId.equals(oldProductId));
+    });
 
-    for (let productId of newSimilarProductsArray) {
-      if (productId.toString() === product._id.toString()) {
+    const addSimilarProductIds = newSimilarProductList.filter(newProductId => {
+      return !product.similarProducts.some(oldProductId => oldProductId.equals(newProductId));
+    });
+
+    for (let productId of removeSimilarProductIds) {
+      const oldSimilarProduct = (await ProductModel.findById(productId));
+      if (oldSimilarProduct) {
+        product.similarProducts = product.similarProducts.filter(id => !id.equals(productId));
+        oldSimilarProduct.similarProducts = oldSimilarProduct.similarProducts.filter(id => !id.equals(product._id));
+        oldSimilarProduct?.save({ session });
+      }
+    }
+
+    for (let productId of addSimilarProductIds) {
+      if (product._id.equals(productId)) {
         throw new Error(`Cannot add product itself as a similar product`);
       }
-      const similarProduct = await ProductModel.findById(productId);
-      if (!similarProduct) {
+      const newSimilarProduct = await ProductModel.findById(productId);
+      if (!newSimilarProduct) {
         throw new Error(`Product with id ${productId} from similar product array not found`);
       }
       product.similarProducts.push(productId);
+      newSimilarProduct.similarProducts.push(product._id);
+      newSimilarProduct.save({ session });
     }
 
-    await product.save();
+    await product.save({ session });
+    await session.commitTransaction();
+    await session.endSession();
     return next(new CustomSuccess(product, 200));
   } catch (error: any) {
+    await session.abortTransaction();
+    await session.endSession();
     return next(new CustomError(error.message, 500));
   }
 };
