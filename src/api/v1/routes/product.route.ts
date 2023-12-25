@@ -25,8 +25,8 @@ const upload = multer();
 
 // * UNAUTHORIZED ROUTES
 router.get('/', getProducts);
-router.get('/with-ids', getProductsWithIds);
 router.get('/:productId', getProduct);
+router.post('/with-ids', getProductsWithIds);
 
 // * AUTHORIZED ROUTES - CUSTOMER
 router.use(isAuthenticated);
