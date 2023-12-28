@@ -8,8 +8,6 @@ import {
   CreateProductDto,
   CustomError,
   CustomSuccess,
-  DEFAULT_PAGINATION_PAGE,
-  DEFAULT_PAGINATION_SIZE,
   GetUserAuthInfoRequestInterface,
   MAX_IMAGES_PER_PRODUCT,
   Pagination,
@@ -18,7 +16,8 @@ import {
   createProductImage,
   deleteProductImageFile,
   doesArraysHaveSimilarElements,
-  uploadProductImageFile
+  uploadProductImageFile,
+  FilterCriteriaDto
 } from '../shared';
 import {
   ProductImageModel,
@@ -84,8 +83,13 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
 
 export const getProducts = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
   try {
-    const page = parseInt(<string>req.query.page) || DEFAULT_PAGINATION_PAGE;
-    const size = parseInt(<string>req.query.size) || DEFAULT_PAGINATION_SIZE;
+    const {
+      page,
+      size,
+      category,
+      isPopular,
+      search
+    } = new FilterCriteriaDto(req.query);
     const totalElements = await ProductModel.countDocuments();
     let totalPages = Math.floor(totalElements / size);
     if ((totalElements % size) > 0) {
