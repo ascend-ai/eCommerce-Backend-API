@@ -2,7 +2,7 @@ import {
   NextFunction,
   Response
 } from 'express';
-import mongoose, { ClientSession, Types } from 'mongoose';
+import mongoose, { ClientSession, FilterQuery, Types } from 'mongoose';
 
 import {
   CreateProductDto,
@@ -17,7 +17,8 @@ import {
   deleteProductImageFile,
   doesArraysHaveSimilarElements,
   uploadProductImageFile,
-  FilterCriteriaDto
+  FilterCriteriaDto,
+  ProductInterface
 } from '../shared';
 import {
   ProductImageModel,
@@ -90,14 +91,27 @@ export const getProducts = async (req: GetUserAuthInfoRequestInterface, res: Res
       isPopular,
       search
     } = new FilterCriteriaDto(req.query);
-    const totalElements = await ProductModel.countDocuments();
+
+    const filterQueryList: Array<FilterQuery<ProductInterface>> = [];
+
+    category ? filterQueryList.push({ category }) : null;
+
+    (typeof isPopular === 'boolean') ? filterQueryList.push({ isPopular }) : null;
+
+    (typeof search === 'string' && search.length > 0) ? null : null;
+
+    const totalElements = await ProductModel.countDocuments({
+      $and: filterQueryList
+    });
     let totalPages = Math.floor(totalElements / size);
     if ((totalElements % size) > 0) {
       totalPages += 1;
     }
 
     const products = await ProductModel
-      .find()
+      .find({
+        $and: filterQueryList
+      })
       .skip(page * size)
       .limit(size)
       .populate('images');
