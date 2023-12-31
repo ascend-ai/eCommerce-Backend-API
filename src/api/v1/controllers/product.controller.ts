@@ -94,27 +94,54 @@ export const getProducts = async (req: GetUserAuthInfoRequestInterface, res: Res
 
     const filterQueryList: Array<FilterQuery<ProductInterface>> = [];
 
-    category ? filterQueryList.push({ category }) : null;
-
-    (typeof isPopular === 'boolean') ? filterQueryList.push({ isPopular }) : null;
-
-    (typeof search === 'string' && search.length > 0) ? null : null;
-
-    const totalElements = await ProductModel.countDocuments({
-      $and: filterQueryList
-    });
-    let totalPages = Math.floor(totalElements / size);
-    if ((totalElements % size) > 0) {
-      totalPages += 1;
+    if (category) {
+      filterQueryList.push({ category });
     }
 
-    const products = await ProductModel
-      .find({
+    if (typeof isPopular === 'boolean') {
+      filterQueryList.push({ isPopular });
+    }
+
+    if (typeof search === 'string' && search.length > 0) {
+      filterQueryList.push({ name: { $regex: search, $options: 'i' } });
+    }
+
+
+    let totalElements: number;
+    let totalPages: number;
+    let products;
+
+    if (filterQueryList.length > 0) {
+      totalElements = await ProductModel.countDocuments({
         $and: filterQueryList
-      })
-      .skip(page * size)
-      .limit(size)
-      .populate('images');
+      });
+  
+      totalPages = Math.floor(totalElements / size);
+      if ((totalElements % size) > 0) {
+        totalPages += 1;
+      }
+  
+      products = await ProductModel
+        .find({
+          $and: filterQueryList
+        })
+        .skip(page * size)
+        .limit(size)
+        .populate('images');
+    } else {
+      totalElements = await ProductModel.countDocuments();
+  
+      totalPages = Math.floor(totalElements / size);
+      if ((totalElements % size) > 0) {
+        totalPages += 1;
+      }
+  
+      products = await ProductModel
+        .find()
+        .skip(page * size)
+        .limit(size)
+        .populate('images');
+    }
 
     const pagination = new Pagination(
       products,
