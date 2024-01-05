@@ -68,7 +68,7 @@ userSchema.pre('save', async function (next: CallbackWithoutResultAndOptionalErr
   }
 
   if (!PASSWORD_REGEX.test(this.password)) {
-    next(new Error(`Password must follow the regex pattern`));
+    next(new Error(`Password requires minimum eight characters, at least one uppercase letter, one lowercase letter, one number & one special character.`));
   }
 
   try {
