@@ -357,9 +357,10 @@ export const editQuantityOfProduct = async (req: GetUserAuthInfoRequestInterface
   try {
     const { productId } = req.params;
     const newProductQuantity = req.body.quantityInStock;
+    console.log(req.body);
 
-    if (!newProductQuantity) {
-      throw new Error(`New product quantity not present`);
+    if (typeof newProductQuantity !== 'number' || newProductQuantity < 0) {
+      throw new Error(`New product quantity Invalid`);
     }
 
     const product = await ProductModel
