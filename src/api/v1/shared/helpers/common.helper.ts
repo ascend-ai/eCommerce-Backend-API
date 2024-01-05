@@ -19,3 +19,12 @@ export const convertStringIdsToObjectId = (arrOfStr: Array<string>): Array<Types
   return [...new Set((arrOfStr))]
       .map(productId => new Types.ObjectId(productId));
 }
+
+export function merge<T>(target: any, source: any): T {
+  for (let key in target) {
+    if (target.hasOwnProperty(key) && source.hasOwnProperty(key)) {
+      target[key] = source[key];
+    }
+  }
+  return target;
+}

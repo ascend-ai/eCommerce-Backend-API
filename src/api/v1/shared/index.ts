@@ -5,3 +5,4 @@ export * from './interfaces';
 export * from './middlewares';
 export * from './utility-classes';
 export * from './helpers';
+export * from './types';

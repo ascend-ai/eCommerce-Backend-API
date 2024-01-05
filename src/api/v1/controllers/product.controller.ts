@@ -18,7 +18,10 @@ import {
   doesArraysHaveSimilarElements,
   uploadProductImageFile,
   FilterCriteriaDto,
-  ProductInterface
+  ProductInterface,
+  EditProductBasicDetailsDto,
+  merge,
+  ProductDocument
 } from '../shared';
 import {
   ProductImageModel,
@@ -328,16 +331,11 @@ export const rearrangeImagesOfProduct = async (req: GetUserAuthInfoRequestInterf
   }
 };
 
-export const editNameOfProduct = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+export const editBasicDetailsOfProduct = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
   try {
     const { productId } = req.params;
-    const newProductName = req.body.name;
 
-    if (!newProductName) {
-      throw new Error(`New product name not present`);
-    }
-
-    const product = await ProductModel
+    let product: ProductDocument | null = await ProductModel
       .findById(productId)
       .populate('images');
 
@@ -345,83 +343,16 @@ export const editNameOfProduct = async (req: GetUserAuthInfoRequestInterface, re
       throw new Error(`Product with id ${productId} not found.`);
     }
 
-    product.name = newProductName;
-    await product.save();
-    return next(new CustomSuccess(product, 200));
-  } catch (error: any) {
-    return next(new CustomError(error.message, 500));
-  }
-};
+    const basicDetails = new EditProductBasicDetailsDto(product);
+    const newBasicDetails = merge<EditProductBasicDetailsDto>(basicDetails, req.body);
 
-export const editQuantityOfProduct = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
-  try {
-    const { productId } = req.params;
-    const newProductQuantity = req.body.quantityInStock;
-    console.log(req.body);
+    product.name = newBasicDetails.name;
+    product.description = newBasicDetails.description;
+    product.quantityInStock = newBasicDetails.quantityInStock;
+    product.category = newBasicDetails.category;
+    product.isPopular = newBasicDetails.isPopular;
+    product.price = newBasicDetails.price;
 
-    if (typeof newProductQuantity !== 'number' || newProductQuantity < 0) {
-      throw new Error(`New product quantity Invalid`);
-    }
-
-    const product = await ProductModel
-      .findById(productId)
-      .populate('images');
-
-    if (!product) {
-      throw new Error(`Product with id ${productId} not found.`);
-    }
-
-    product.quantityInStock = newProductQuantity;
-    await product.save();
-    return next(new CustomSuccess(product, 200));
-  } catch (error: any) {
-    return next(new CustomError(error.message, 500));
-  }
-};
-
-export const editDescriptionOfProduct = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
-  try {
-    const { productId } = req.params;
-    const newProductDescription = req.body.description;
-
-    if (!newProductDescription) {
-      throw new Error(`New product description not present`);
-    }
-
-    const product = await ProductModel
-      .findById(productId)
-      .populate('images');
-
-    if (!product) {
-      throw new Error(`Product with id ${productId} not found.`);
-    }
-
-    product.description = newProductDescription;
-    await product.save();
-    return next(new CustomSuccess(product, 200));
-  } catch (error: any) {
-    return next(new CustomError(error.message, 500));
-  }
-};
-
-export const editCategoryOfProduct = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
-  try {
-    const { productId } = req.params;
-    const newProductCategory = req.body.category;
-
-    if (!newProductCategory) {
-      throw new Error(`New product category not present`);
-    }
-
-    const product = await ProductModel
-      .findById(productId)
-      .populate('images');
-
-    if (!product) {
-      throw new Error(`Product with id ${productId} not found.`);
-    }
-
-    product.category = newProductCategory;
     await product.save();
     return next(new CustomSuccess(product, 200));
   } catch (error: any) {
