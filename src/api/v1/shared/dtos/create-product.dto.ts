@@ -14,7 +14,7 @@ export class CreateProductDto implements Partial<ProductInterface> {
   name: string;
   description: string;
   quantityInStock: number;
-  category: string;
+  category: Categories;
   isPopular: boolean;
   price: number;
   similarProducts: Array<Types.ObjectId>;

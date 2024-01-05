@@ -8,12 +8,9 @@ import {
   getProduct,
   getProducts,
   rearrangeImagesOfProduct,
-  editNameOfProduct,
-  editQuantityOfProduct,
-  editDescriptionOfProduct,
-  editCategoryOfProduct,
   editSimilarProductsOfProduct,
-  getProductsWithIds
+  getProductsWithIds,
+  editBasicDetailsOfProduct
 } from '../controllers';
 import {
   isAuthenticateUserAdminOrMod,
@@ -36,13 +33,8 @@ router.use(isAuthenticateUserAdminOrMod);
 router.post('/', upload.array('product-images'), createProduct);
 router.post('/:productId/images', upload.single('product-image'), addNewImageOfProduct);
 router.put('/:productId/images', rearrangeImagesOfProduct);
-router.put('/:productId/name', editNameOfProduct);
-router.put('/:productId/quantity', editQuantityOfProduct);
-router.put('/:productId/description', editDescriptionOfProduct);
-router.put('/:productId/category', editCategoryOfProduct);
+router.put('/:productId/basic-details', editBasicDetailsOfProduct);
 router.put('/:productId/similar-products', editSimilarProductsOfProduct);
 router.delete('/:productId/images/:imageId', deleteImageOfProduct);
-
-
 
 export const productRoutes = router;
