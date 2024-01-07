@@ -21,7 +21,9 @@ import {
   ProductInterface,
   EditProductBasicDetailsDto,
   merge,
-  ProductDocument
+  ProductDocument,
+  MIN_IMAGES_PER_PRODUCT,
+  ProductImageDocument
 } from '../shared';
 import {
   ProductImageModel,
@@ -55,7 +57,7 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
     
     for (let file of productImgFiles) {
       const productImgId = await createProductImage(file, product._id, session);
-      product.images?.push(productImgId);
+      (product.images as unknown as Array<ProductImageDocument>)?.push(productImgId);
     }
 
     for (let productId of <Array<Types.ObjectId>>productData.similarProducts) {
@@ -219,6 +221,7 @@ export const addNewImageOfProduct = async (req: GetUserAuthInfoRequestInterface,
       .findById(productId)
       .populate('images');
 
+
     if (!productImgFile) {
       throw new Error(`Image not uploaded.`);
     }
@@ -230,9 +233,10 @@ export const addNewImageOfProduct = async (req: GetUserAuthInfoRequestInterface,
     if (!(<number>product.images?.length < MAX_IMAGES_PER_PRODUCT)) {
       throw new Error(`Already ${MAX_IMAGES_PER_PRODUCT} images for product present. Delete some image.`);
     }
+
     
-    const productImgId = await createProductImage(productImgFile, product._id, session);
-    product.images?.push(productImgId);
+    const productImg = await createProductImage(productImgFile, product._id, session);
+    (product.images as unknown as Array<ProductImageDocument>)?.push(productImg);
 
     await product.save({ session });
     await session.commitTransaction();
@@ -271,10 +275,16 @@ export const deleteImageOfProduct = async (req: GetUserAuthInfoRequestInterface,
       throw new Error(`Image with id ${imageId} not found`);
     }
 
-    const indexOfImage = <number>product.images?.indexOf(image._id);
+    const indexOfImage = product.images.findIndex(item => {
+      return item._id.equals(image._id);
+    });
 
     if (indexOfImage < 0) {
       throw new Error(`Image with id ${imageId} does not belong to product with id ${productId}`);
+    }
+
+    if (product.images.length === MIN_IMAGES_PER_PRODUCT) {
+      throw new Error(`Minimum image limit reached`);
     }
 
     product.images?.splice(indexOfImage, 1);
