@@ -19,6 +19,7 @@ import {
 import {
   ACCEPTED_IMG_EXTENSIONS,
   PRODUCT_IMG_UPLOAD_PATH,
+  ProductImageDocument,
   TARGETED_IMG_SIZE 
 } from '..';
 
@@ -30,7 +31,7 @@ import {
  */
 export const createProductImage = async (imgFile: Express.Multer.File,
                                          productId: Types.ObjectId,
-                                         session: ClientSession): Promise<Types.ObjectId> => {
+                                         session: ClientSession): Promise<ProductImageDocument> => {
   if (!imgFile) {
     throw new Error('File is not attached.')
   }
@@ -52,7 +53,7 @@ export const createProductImage = async (imgFile: Express.Multer.File,
 
   productImg.url = `/uploads/${imgFile.originalname}`;
   await productImg.save({ session });
-  return productImg._id;
+  return productImg;
 }
 
 /**
