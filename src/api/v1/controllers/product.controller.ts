@@ -326,12 +326,14 @@ export const rearrangeImagesOfProduct = async (req: GetUserAuthInfoRequestInterf
 
     if (!doesArraysHaveSimilarElements(
       rearrangedImages,
-      <Array<any>>product.images?.map(imgId => imgId.toString())
+      <Array<any>>product.images?.map(img => img._id.toString())
     )) {
       throw new Error(`Images are different`);
     }
 
-    product.images = rearrangedImages.map(imgId => new Types.ObjectId(imgId));;
+    
+    product.images = rearrangedImages
+      .map(imgId => <Types.ObjectId>product.images.find(img => img._id.equals(new Types.ObjectId(imgId))));
 
     await product.save();
     return next(new CustomSuccess(product, 200));
