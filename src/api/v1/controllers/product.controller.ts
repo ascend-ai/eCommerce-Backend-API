@@ -67,7 +67,7 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
       }
       product.similarProducts.push(productId);
       similarProduct.similarProducts.push(product._id);
-      similarProduct.save({ session });
+      await similarProduct.save({ session });
     }
 
     await product.save({ session });
@@ -404,11 +404,11 @@ export const editSimilarProductsOfProduct = async (req: GetUserAuthInfoRequestIn
     });
 
     for (let productId of removeSimilarProductIds) {
-      const oldSimilarProduct = (await ProductModel.findById(productId));
+      const oldSimilarProduct = await ProductModel.findById(productId);
       if (oldSimilarProduct) {
         product.similarProducts = product.similarProducts.filter(id => !id.equals(productId));
         oldSimilarProduct.similarProducts = oldSimilarProduct.similarProducts.filter(id => !id.equals(product._id));
-        oldSimilarProduct?.save({ session });
+        await oldSimilarProduct?.save({ session });
       }
     }
 
@@ -422,7 +422,7 @@ export const editSimilarProductsOfProduct = async (req: GetUserAuthInfoRequestIn
       }
       product.similarProducts.push(productId);
       newSimilarProduct.similarProducts.push(product._id);
-      newSimilarProduct.save({ session });
+      await newSimilarProduct.save({ session });
     }
 
     await product.save({ session });

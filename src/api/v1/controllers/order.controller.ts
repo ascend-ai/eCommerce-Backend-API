@@ -14,8 +14,13 @@ import {
   GetUserAuthInfoRequestInterface,
   MIN_ORDERABLE_PRODUCT_QTY
 } from '../shared';
-import { razorpayConfig } from '../../../config';
-import { OrderModel, ProductModel } from '../data-models';
+import {
+  razorpayConfig
+} from '../../../config';
+import {
+  OrderModel,
+  ProductModel
+} from '../data-models';
 
 export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
   try {
