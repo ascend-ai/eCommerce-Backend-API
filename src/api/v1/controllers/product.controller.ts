@@ -47,8 +47,9 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
       price: productData.price,
     });
 
-    if (!Array.isArray(productImgFiles)) {
-      throw new Error(`Image files not present.`);
+    if (!Array.isArray(productImgFiles) ||
+        productImgFiles.length < MIN_IMAGES_PER_PRODUCT) {
+      throw new Error(`Minimum 1 image per product req`);
     }
 
     if (productImgFiles.length > MAX_IMAGES_PER_PRODUCT) {

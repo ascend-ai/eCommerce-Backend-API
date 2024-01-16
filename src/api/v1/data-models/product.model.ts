@@ -57,11 +57,11 @@ const productSchema = new mongoose.Schema<ProductInterface>({
       },
     ],
     validate: {
-      validator: function (value: Array<any>) {
-        return value.length <= MAX_IMAGES_PER_PRODUCT &&
-               value.length >= MIN_IMAGES_PER_PRODUCT;
+      validator: function (this: ProductInterface) {
+        return this.images.length <= MAX_IMAGES_PER_PRODUCT &&
+               this.images.length >= MIN_IMAGES_PER_PRODUCT;
       },
-      message: 'The images array should contain no more than 3 elements.',
+      message: 'The images array should contain no less than 1 & no more than 3 elements.',
     },
   },
   category: {
