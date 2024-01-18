@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import {
   Types
 } from 'mongoose';
@@ -28,3 +29,36 @@ export function merge<T>(target: any, source: any): T {
   }
   return target;
 }
+
+export const generateHmacSha256 = (data: string, secret: string): string => {
+  const hmac = crypto.createHmac('sha256', secret);
+  hmac.update(data);
+  return hmac.digest('hex');
+}
+
+/**
+ * 
+ * @param arr1
+ * @param arr2
+ * @returns
+ */
+export const doesArraysHaveSimilarElements = (arr1: Array<any>, arr2: Array<any>): boolean => {
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+
+  const set1 = new Set(arr1);
+  const set2 = new Set(arr2);
+
+  if (set1.size !== set2.size) {
+    return false;
+  }
+
+  for (let item of set1) {
+    if (!set2.has(item)) {
+      return false;
+    }
+  }
+
+  return true;
+};

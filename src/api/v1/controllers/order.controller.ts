@@ -12,7 +12,11 @@ import {
   CustomError,
   CustomSuccess,
   GetUserAuthInfoRequestInterface,
-  MIN_ORDERABLE_PRODUCT_QTY
+  INR_SUBUNIT,
+  MIN_ORDERABLE_PRODUCT_QTY,
+  OrderDocument,
+  OrderStatus,
+  generateHmacSha256
 } from '../shared';
 import {
   razorpayConfig
@@ -25,7 +29,7 @@ import {
 export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
   try {
 
-    const purchases: Record<string, string> = req.body;
+    const purchases: Record<string, number> = req.body;
 
     if (!(typeof purchases === 'object' &&
         purchases !== null &&
@@ -41,7 +45,7 @@ export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Res
 
     for (let [key, value] of Object.entries(purchases)) {
       const productId = new Types.ObjectId(key);
-      const productOrderQty = parseInt(value);
+      const productOrderQty = value;
 
       if (!(!Number.isNaN(productOrderQty) &&
           productOrderQty >= MIN_ORDERABLE_PRODUCT_QTY)) {
@@ -63,8 +67,9 @@ export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Res
 
     const razorpay = new Razorpay(razorpayConfig);
     const razorpayOrder = await razorpay.orders.create({
-      amount: totalPurchaseAmount,
-      currency: ACCEPTED_CURRENCY
+      amount: totalPurchaseAmount * INR_SUBUNIT,
+      currency: ACCEPTED_CURRENCY,
+      payment_capture: false
     });
 
     const order = new OrderModel({
@@ -83,8 +88,46 @@ export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Res
 
 export const verifyOrderPayment = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
   try {
+    const { FRONTEND_URL, RAZORPAY_SECRET } = <Record<string, string>>process.env;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-    return next(new CustomSuccess(null, 200));
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+
+    const expectedSignature = generateHmacSha256(body, RAZORPAY_SECRET);
+
+    const isAuthentic = expectedSignature === razorpay_signature;
+
+    if (isAuthentic) {
+
+      // * Capturing payment manually
+      const razorpay = new Razorpay(razorpayConfig);
+      const razorpayOrder = await razorpay.orders.fetch(razorpay_order_id);
+      await razorpay.payments.capture(
+        razorpay_payment_id,
+        razorpayOrder.amount,
+        razorpayOrder.currency
+      );
+
+      const order: OrderDocument | null = await OrderModel.findOne({
+        razorpayOrderId: razorpay_order_id
+      });
+
+      if (order) {
+        order.status = OrderStatus.PLACED;
+        order.razorpayPaymentId = razorpay_payment_id;
+        order.razorpaySignature = razorpay_signature;
+        await order.save();
+      }
+
+      return res.redirect(
+
+        // * Redirecting to frontend success page
+        `${FRONTEND_URL}/payment-success?reference=${razorpay_payment_id}`
+
+      );
+    } else {
+      throw new Error(`Payment failed`);
+    }
   } catch (error: any) {
     return next(new CustomError(error.message, 400));
   }
