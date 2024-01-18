@@ -23,7 +23,7 @@ export class CreateProductDto implements Partial<ProductInterface> {
     this.name = reqBody?.name || '';
     this.description = reqBody?.description || '';
     this.isPopular = (reqBody?.isPopular === 'true');
-    this.price = parseFloat(reqBody?.price) || MIN_PRODUCT_PRICE;
+    this.price = parseFloat(reqBody?.price) || 0;
     this.quantityInStock = parseInt(reqBody?.quantityInStock) || MIN_QTY_IN_STOCK;
     this.category = reqBody?.category || Categories.OTHERS;
     if (!(typeof reqBody?.similarProducts === 'undefined')) {

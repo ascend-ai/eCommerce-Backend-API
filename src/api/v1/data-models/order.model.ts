@@ -15,6 +15,8 @@ const orderSchema = new mongoose.Schema<OrderInterface>({
     type: String,
     required: true
   },
+  razorpayPaymentId: String,
+  razorpaySignature: String,
   purchases: {
     type: Map,
     of: Number,
