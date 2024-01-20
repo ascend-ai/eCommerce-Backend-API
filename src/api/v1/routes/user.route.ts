@@ -1,28 +1,57 @@
 import express from 'express';
-
 import {
+  isAuthenticateUserStrictlyAdmin,
   isAuthenticateUserAdminOrMod,
   isAuthenticated
 } from '../shared';
 import {
+  getModerators,
   getOrderSpecificToUser,
   getOrdersSpecificToUser,
-  getUser
+  getUser,
+  getUsers,
+  updateModerators
 } from '../controllers';
 
 const router = express.Router();
 
-// * UNAUTHORIZED ROUTES
+router.get(
+  '/',
+  isAuthenticated,
+  isAuthenticateUserAdminOrMod,
+  getUsers
+);
 
-// * AUTHORIZED ROUTES - CUSTOMER
-router.use(isAuthenticated);
-router.get('/:userId', getUser);
-router.get('/:userId/orders', getOrdersSpecificToUser);
-router.get('/:userId/orders/:orderId', getOrderSpecificToUser);
+router.get(
+  '/moderators',
+  isAuthenticated,
+  isAuthenticateUserAdminOrMod,
+  getModerators
+);
 
-// * AUTHORIZED ROUTES - ADMIN & MODERATORS
-router.use(isAuthenticateUserAdminOrMod);
+router.get(
+  '/:userId',
+  isAuthenticated,
+  getUser
+);
 
+router.get(
+  '/:userId/orders',
+  isAuthenticated,
+  getOrdersSpecificToUser
+);
 
+router.get(
+  '/:userId/orders/:orderId',
+  isAuthenticated,
+  getOrderSpecificToUser
+);
+
+router.put(
+  '/moderators',
+  isAuthenticated,
+  isAuthenticateUserStrictlyAdmin,
+  updateModerators
+);
 
 export const userRoutes = router;
