@@ -3,21 +3,24 @@ import {
   DEFAULT_PAGINATION_SIZE
 } from '../constants';
 import {
-  OrderStatus
+  UserRole
 } from '../enums';
 import {
   BaseFilterCriteriaDto
 } from './base-filter-criteria.dto';
 
-export class OrderFilterCriteriaDto extends BaseFilterCriteriaDto {
-  status: OrderStatus | undefined;
+export class UserFilterCriteriaDto extends BaseFilterCriteriaDto {
+  role: UserRole | undefined;
+  search: string | undefined;
 
   constructor(queryParams: Record<string, any> = {
     page: DEFAULT_PAGINATION_PAGE,
     size: DEFAULT_PAGINATION_SIZE,
-    status: undefined,
+    role: undefined,
+    search: undefined,
   }) {
     super(queryParams);
-    this.status = queryParams?.status || undefined;
+    this.role = queryParams?.role || undefined;
+    this.search = queryParams?.search || undefined;
   }
 }
