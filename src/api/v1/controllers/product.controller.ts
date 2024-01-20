@@ -17,13 +17,13 @@ import {
   deleteProductImageFile,
   doesArraysHaveSimilarElements,
   uploadProductImageFile,
-  FilterCriteriaDto,
   ProductInterface,
   EditProductBasicDetailsDto,
   merge,
   ProductDocument,
   MIN_IMAGES_PER_PRODUCT,
-  ProductImageDocument
+  ProductImageDocument,
+  ProductFilterCriteriaDto
 } from '../shared';
 import {
   ProductImageModel,
@@ -96,7 +96,7 @@ export const getProducts = async (req: GetUserAuthInfoRequestInterface, res: Res
       category,
       isPopular,
       search
-    } = new FilterCriteriaDto(req.query);
+    } = new ProductFilterCriteriaDto(req.query);
 
     const filterQueryList: Array<FilterQuery<ProductInterface>> = [];
 

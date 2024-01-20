@@ -1,28 +1,28 @@
 import express from 'express';
 
 import {
-  createOrder,
-  getAllOrders,
-  verifyOrderPayment,
-} from '../controllers';
-import {
   isAuthenticateUserAdminOrMod,
   isAuthenticated
 } from '../shared';
+import {
+  getOrderSpecificToUser,
+  getOrdersSpecificToUser,
+  getUser
+} from '../controllers';
 
 const router = express.Router();
 
 // * UNAUTHORIZED ROUTES
-router.post('/verify-payment', verifyOrderPayment);
 
 // * AUTHORIZED ROUTES - CUSTOMER
 router.use(isAuthenticated);
-router.post('/', createOrder);
+router.get('/:userId', getUser);
+router.get('/:userId/orders', getOrdersSpecificToUser);
+router.get('/:userId/orders/:orderId', getOrderSpecificToUser);
 
 // * AUTHORIZED ROUTES - ADMIN & MODERATORS
 router.use(isAuthenticateUserAdminOrMod);
-router.get('/', getAllOrders);
 
 
 
-export const orderRoutes = router;
+export const userRoutes = router;
