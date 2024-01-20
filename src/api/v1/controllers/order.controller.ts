@@ -3,6 +3,7 @@ import {
   Response
 } from 'express';
 import {
+  FilterQuery,
   Types
 } from 'mongoose';
 import Razorpay from 'razorpay';
@@ -15,7 +16,12 @@ import {
   INR_SUBUNIT,
   MIN_ORDERABLE_PRODUCT_QTY,
   OrderDocument,
+  OrderFilterCriteriaDto,
+  OrderInterface,
   OrderStatus,
+  Pagination,
+  UserDocument,
+  UserRole,
   generateHmacSha256
 } from '../shared';
 import {
@@ -83,6 +89,181 @@ export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Res
 
   } catch (error: any) {
     return next(new CustomError(error.message, 400));
+  }
+};
+
+export const getAllOrders = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  try {
+    const {
+      page,
+      size,
+      status
+    } = new OrderFilterCriteriaDto(req.query);
+
+    const filterQueryList: Array<FilterQuery<OrderInterface>> = [];
+
+    if (status) {
+      filterQueryList.push({ status });
+    }
+
+
+    let totalElements: number;
+    let totalPages: number;
+    let orders;
+
+    if (filterQueryList.length > 0) {
+      totalElements = await OrderModel.countDocuments({
+        $and: filterQueryList
+      });
+  
+      totalPages = Math.floor(totalElements / size);
+      if ((totalElements % size) > 0) {
+        totalPages += 1;
+      }
+  
+      orders = await OrderModel
+        .find({
+          $and: filterQueryList
+        })
+        .skip(page * size)
+        .limit(size)
+        .populate('user');
+    } else {
+      totalElements = await OrderModel.countDocuments();
+  
+      totalPages = Math.floor(totalElements / size);
+      if ((totalElements % size) > 0) {
+        totalPages += 1;
+      }
+  
+      orders = await OrderModel
+        .find()
+        .skip(page * size)
+        .limit(size)
+        .populate('user');
+    }
+
+    const pagination = new Pagination(
+      orders,
+      totalElements,
+      totalPages,
+      page,
+      size
+    );
+
+    return next(new CustomSuccess(pagination, 200));
+  } catch (error: any) {
+    return next(new CustomError(error.message, 500));
+  }
+};
+
+export const getOrdersSpecificToUser = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  try {
+    let { userId }: any = req.params;
+    userId = new Types.ObjectId(userId);
+
+    const isLoggedInUserAdminOrMod: boolean =  [
+      UserRole.ADMIN,
+      UserRole.MODERATOR
+    ].includes((<UserDocument>req.loggedInUser)?.role);
+
+    const isLoggedInUserSelf: boolean = (<UserDocument>req.loggedInUser)?._id.equals(userId);
+
+    if (isLoggedInUserAdminOrMod || isLoggedInUserSelf) {
+      const {
+        page,
+        size,
+        status
+      } = new OrderFilterCriteriaDto(req.query);
+  
+      const filterQueryList: Array<FilterQuery<OrderInterface>> = [];
+
+      filterQueryList.push({ user: userId });
+  
+      if (status) {
+        filterQueryList.push({ status });
+      }
+  
+      let totalElements: number;
+      let totalPages: number;
+      let orders;
+  
+      if (filterQueryList.length > 0) {
+        totalElements = await OrderModel.countDocuments({
+          $and: filterQueryList
+        });
+    
+        totalPages = Math.floor(totalElements / size);
+        if ((totalElements % size) > 0) {
+          totalPages += 1;
+        }
+    
+        orders = await OrderModel
+          .find({
+            $and: filterQueryList
+          })
+          .skip(page * size)
+          .limit(size);
+      } else {
+        totalElements = await OrderModel.countDocuments();
+    
+        totalPages = Math.floor(totalElements / size);
+        if ((totalElements % size) > 0) {
+          totalPages += 1;
+        }
+    
+        orders = await OrderModel
+          .find()
+          .skip(page * size)
+          .limit(size);
+      }
+  
+      const pagination = new Pagination(
+        orders,
+        totalElements,
+        totalPages,
+        page,
+        size
+      );
+  
+      return next(new CustomSuccess(pagination, 200));
+    } else {
+      return next(new CustomError(`Unauthorized access`, 401))
+    }
+  } catch (error: any) {
+    return next(new CustomError(error.message, 500));
+  }
+};
+
+export const getOrderSpecificToUser = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  try {
+    let { userId, orderId }: any = req.params;
+    userId = new Types.ObjectId(userId);
+    orderId = new Types.ObjectId(orderId);
+
+    const isLoggedInUserAdminOrMod: boolean =  [
+      UserRole.ADMIN,
+      UserRole.MODERATOR
+    ].includes((<UserDocument>req.loggedInUser)?.role);
+
+    const isLoggedInUserSelf: boolean = (<UserDocument>req.loggedInUser)?._id.equals(userId);
+
+    const order = await OrderModel.findById(orderId);
+    if (!order) {
+      throw new Error(`Order with id ${orderId} not found`);
+    }
+
+    if (isLoggedInUserAdminOrMod) {
+      return next(new CustomSuccess(order, 200));
+    }
+
+    if (isLoggedInUserSelf && order.user.equals(userId)) {
+      return next(new CustomSuccess(order, 200));
+    } else {
+      return next(new CustomError(`Unauthorized access`, 401));
+    }
+  } catch (error: any) {
+    return next(new CustomError(error.message, 500));
   }
 };
 
