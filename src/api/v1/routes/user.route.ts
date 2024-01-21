@@ -5,7 +5,7 @@ import {
   isAuthenticated
 } from '../shared';
 import {
-  getModerators,
+  getModeratorList,
   getOrderSpecificToUser,
   getOrdersSpecificToUser,
   getUser,
@@ -26,7 +26,7 @@ router.get(
   '/moderators',
   isAuthenticated,
   isAuthenticateUserAdminOrMod,
-  getModerators
+  getModeratorList
 );
 
 router.get(
