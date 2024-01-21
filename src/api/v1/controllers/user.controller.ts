@@ -117,7 +117,7 @@ export const getUsers = async (req: GetUserAuthInfoRequestInterface, res: Respon
   }
 };
 
-export const getModerators = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+export const getModeratorList = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
   try {
     const moderators = await UserModel.find({
       role: UserRole.MODERATOR
