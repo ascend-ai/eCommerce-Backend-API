@@ -82,6 +82,7 @@ export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Res
       user: req.loggedInUser?._id,
       razorpayOrderId: razorpayOrder.id,
       purchases,
+      totalPurchaseAmount
     });
 
     await order.save();
@@ -125,6 +126,7 @@ export const getAllOrders = async (req: GetUserAuthInfoRequestInterface, res: Re
         .find({
           $and: filterQueryList
         })
+        .sort({ whenCreated: -1 })
         .skip(page * size)
         .limit(size)
         .populate('user');
@@ -138,6 +140,7 @@ export const getAllOrders = async (req: GetUserAuthInfoRequestInterface, res: Re
   
       orders = await OrderModel
         .find()
+        .sort({ whenCreated: -1 })
         .skip(page * size)
         .limit(size)
         .populate('user');
@@ -202,6 +205,7 @@ export const getOrdersSpecificToUser = async (req: GetUserAuthInfoRequestInterfa
           .find({
             $and: filterQueryList
           })
+          .sort({ whenCreated: -1 })
           .skip(page * size)
           .limit(size);
       } else {
@@ -214,6 +218,7 @@ export const getOrdersSpecificToUser = async (req: GetUserAuthInfoRequestInterfa
     
         orders = await OrderModel
           .find()
+          .sort({ whenCreated: -1 })
           .skip(page * size)
           .limit(size);
       }
@@ -235,33 +240,72 @@ export const getOrdersSpecificToUser = async (req: GetUserAuthInfoRequestInterfa
   }
 };
 
-export const getOrderSpecificToUser = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+export const getOrder = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
   try {
-    let { userId, orderId }: any = req.params;
-    userId = new Types.ObjectId(userId);
+    let { orderId }: any = req.params;
     orderId = new Types.ObjectId(orderId);
+
+    const order = await OrderModel
+      .findById(orderId)
+      .populate('user');
+
+    if (!order) {
+      throw new Error(`Order with id ${orderId} not found`);
+    }
+
+    const userId = order.user._id;
 
     const isLoggedInUserAdminOrMod: boolean =  [
       UserRole.ADMIN,
       UserRole.MODERATOR
     ].includes((<UserDocument>req.loggedInUser)?.role);
 
-    const isLoggedInUserSelf: boolean = (<UserDocument>req.loggedInUser)?._id.equals(userId);
+    const doesOrderBelongsToLoggedInUser: boolean = (<UserDocument>req.loggedInUser)?._id.equals(userId);
 
-    const order = await OrderModel.findById(orderId);
-    if (!order) {
-      throw new Error(`Order with id ${orderId} not found`);
-    }
-
-    if (isLoggedInUserAdminOrMod) {
-      return next(new CustomSuccess(order, 200));
-    }
-
-    if (isLoggedInUserSelf && order.user.equals(userId)) {
+    if (isLoggedInUserAdminOrMod || doesOrderBelongsToLoggedInUser) {
       return next(new CustomSuccess(order, 200));
     } else {
       return next(new CustomError(`Unauthorized access`, 401));
     }
+  } catch (error: any) {
+    return next(new CustomError(error.message, 500));
+  }
+};
+
+export const updateOrderStatus = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  try {
+    const acceptableOrderStatusList: Array<OrderStatus> = [
+      OrderStatus.PLACED,
+      OrderStatus.CONFIRMED,
+      OrderStatus.SHIPPED,
+      OrderStatus.DELIVERED,
+    ];
+    const { status } = req.body;
+
+    if (!status) {
+      throw new Error('New status not present');
+    }
+
+    if (!acceptableOrderStatusList.includes(status)) {
+      throw new Error('Invalid status');
+    }
+
+    let { orderId }: any = req.params;
+    orderId = new Types.ObjectId(orderId);
+
+    const order = await OrderModel
+      .findById(orderId)
+      .populate('user');
+
+    if (!order) {
+      throw new Error(`Order with id ${orderId} not found`);
+    }
+
+    order.status = status;
+
+    await order.save();
+
+    return next(new CustomSuccess(order, 200));
   } catch (error: any) {
     return next(new CustomError(error.message, 500));
   }
@@ -289,21 +333,19 @@ export const verifyOrderPayment = async (req: GetUserAuthInfoRequestInterface, r
         razorpayOrder.currency
       );
 
-      const order: OrderDocument | null = await OrderModel.findOne({
+      const order: OrderDocument = <OrderDocument>(await OrderModel.findOne({
         razorpayOrderId: razorpay_order_id
-      });
+      }));
 
-      if (order) {
-        order.status = OrderStatus.PLACED;
-        order.razorpayPaymentId = razorpay_payment_id;
-        order.razorpaySignature = razorpay_signature;
-        await order.save();
-      }
+      order.status = OrderStatus.PLACED;
+      order.razorpayPaymentId = razorpay_payment_id;
+      order.razorpaySignature = razorpay_signature;
+      await order.save();
 
       return res.redirect(
 
         // * Redirecting to frontend success page
-        `${FRONTEND_URL}/payment-success?reference=${razorpay_payment_id}`
+        `${FRONTEND_URL}/orders/${order?._id}`
 
       );
     } else {

@@ -11,7 +11,8 @@ export interface OrderInterface {
   razorpayOrderId: string;
   razorpayPaymentId: string;
   razorpaySignature: string;
-  purchases: Record<string, number>;
+  purchases: Map<string, number>;
+  totalPurchaseAmount: number;
   status: OrderStatus
-  whenCreated: Date;
+  whenCreated: number;
 }

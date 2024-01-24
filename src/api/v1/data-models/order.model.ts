@@ -33,8 +33,12 @@ const orderSchema = new mongoose.Schema<OrderInterface>({
     ],
     default: OrderStatus.PENDING
   },
+  totalPurchaseAmount: {
+    type: Number,
+    required: true
+  },
   whenCreated: {
-    type: Date,
+    type: Number,
     default: Date.now
   }
 });
