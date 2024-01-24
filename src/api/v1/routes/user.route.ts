@@ -6,7 +6,6 @@ import {
 } from '../shared';
 import {
   getModeratorList,
-  getOrderSpecificToUser,
   getOrdersSpecificToUser,
   getUser,
   getUsers,
@@ -39,12 +38,6 @@ router.get(
   '/:userId/orders',
   isAuthenticated,
   getOrdersSpecificToUser
-);
-
-router.get(
-  '/:userId/orders/:orderId',
-  isAuthenticated,
-  getOrderSpecificToUser
 );
 
 router.put(
