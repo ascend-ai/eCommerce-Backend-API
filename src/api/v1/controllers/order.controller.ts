@@ -207,7 +207,8 @@ export const getOrdersSpecificToUser = async (req: GetUserAuthInfoRequestInterfa
           })
           .sort({ whenCreated: -1 })
           .skip(page * size)
-          .limit(size);
+          .limit(size)
+          .populate('user');
       } else {
         totalElements = await OrderModel.countDocuments();
     
@@ -220,7 +221,8 @@ export const getOrdersSpecificToUser = async (req: GetUserAuthInfoRequestInterfa
           .find()
           .sort({ whenCreated: -1 })
           .skip(page * size)
-          .limit(size);
+          .limit(size)
+          .populate('user');
       }
   
       const pagination = new Pagination(
