@@ -5,6 +5,7 @@ import {
   isAuthenticated
 } from '../shared';
 import {
+  editBasicDetailsOfUser,
   getModeratorList,
   getOrdersSpecificToUser,
   getUser,
@@ -39,6 +40,13 @@ router.get(
   isAuthenticated,
   getOrdersSpecificToUser
 );
+
+router.put(
+  '/:userId/basic-details',
+  isAuthenticated,
+  editBasicDetailsOfUser
+);
+
 
 router.put(
   '/moderators',

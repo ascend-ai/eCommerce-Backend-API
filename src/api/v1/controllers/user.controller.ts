@@ -3,8 +3,10 @@ import {
   Response
 } from 'express';
 import {
+  AddressInterface,
   CustomError,
   CustomSuccess,
+  EditUserBasicDetailsDto,
   GetUserAuthInfoRequestInterface,
   Pagination,
   UserDocument,
@@ -12,7 +14,8 @@ import {
   UserInterface,
   UserRole,
   convertStringIdsToObjectId,
-  isValidArrayOfStrings
+  isValidArrayOfStrings,
+  merge
 } from '../shared';
 import {
   UserModel
@@ -40,6 +43,48 @@ export const getUser = async (req: GetUserAuthInfoRequestInterface, res: Respons
       if (!user) {
         throw new Error(`User with id ${userId} not found`);
       }
+      return next(new CustomSuccess(user, 200));
+    } else {
+      return next(new CustomError(`Unauthorized access`, 401));
+    }
+  } catch (error: any) {
+    return next(new CustomError(error.message, 400));
+  }
+};
+
+export const editBasicDetailsOfUser = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  try {
+    let { userId }: any = req.params;
+    userId = new Types.ObjectId(userId);
+
+
+    
+    let user = await UserModel.findById(userId);
+    
+    if (!user) {
+      throw new Error(`User with id ${userId} not found.`);
+    }
+    
+    const isLoggedInUserSelf: boolean = (<UserDocument>req.loggedInUser)?._id.equals(userId);
+    
+
+    if (isLoggedInUserSelf) {
+      const basicDetails = new EditUserBasicDetailsDto(user);
+      const newBasicDetails = new EditUserBasicDetailsDto({});
+      newBasicDetails.phoneNumber = req.body?.phoneNumber || basicDetails.phoneNumber;
+      newBasicDetails.address = merge<AddressInterface>(basicDetails.address, req.body?.address);
+
+      user.address = newBasicDetails.address;
+      user.address.streetAddressLine1 = newBasicDetails.address.streetAddressLine1;
+      user.address.streetAddressLine2 = newBasicDetails.address.streetAddressLine2;
+      user.address.streetAddressLine3 = newBasicDetails.address.streetAddressLine3;
+      user.address.city = newBasicDetails.address.city;
+      user.address.state = newBasicDetails.address.state;
+      user.address.country = newBasicDetails.address.state;
+      user.address.state = newBasicDetails.address.country;
+      user.address.postalCode = newBasicDetails.address.postalCode;
+      user.phoneNumber = newBasicDetails.phoneNumber;
+      await user.save();
       return next(new CustomSuccess(user, 200));
     } else {
       return next(new CustomError(`Unauthorized access`, 401));

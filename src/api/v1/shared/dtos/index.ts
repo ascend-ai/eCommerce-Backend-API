@@ -5,3 +5,4 @@ export * from './product-filter-criteria.dto';
 export * from './order-filter-criteria.dto';
 export * from './user-filter-criteria.dto';
 export * from './edit-product-basic-details.dto';
+export * from './edit-user-basic-details.dto';
