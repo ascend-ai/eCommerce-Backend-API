@@ -80,8 +80,7 @@ export const editBasicDetailsOfUser = async (req: GetUserAuthInfoRequestInterfac
       user.address.streetAddressLine3 = newBasicDetails.address.streetAddressLine3;
       user.address.city = newBasicDetails.address.city;
       user.address.state = newBasicDetails.address.state;
-      user.address.country = newBasicDetails.address.state;
-      user.address.state = newBasicDetails.address.country;
+      user.address.country = newBasicDetails.address.country;
       user.address.postalCode = newBasicDetails.address.postalCode;
       user.phoneNumber = newBasicDetails.phoneNumber;
       await user.save();
@@ -199,12 +198,16 @@ export const updateModerators = async (req: GetUserAuthInfoRequestInterface, res
       return !currentModUsers.some(user => user._id.equals(userId));
     });
 
+    const unchangedModUsers = currentModUsers.filter(user => {
+      return newModUserIds.some(userId => userId.equals(user._id));
+    });
+
     for (let user of removeableModUsers) {
       user.role = UserRole.CUSTOMER;
       await user?.save({ session });
     }
 
-    const newModUsers = [];
+    const newModUsers = [...unchangedModUsers];
 
     for (let userId of addableModUserIds) {
       if (req.loggedInUser?._id.equals(userId)) {
