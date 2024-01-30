@@ -25,7 +25,7 @@ const productSchema = new mongoose.Schema<ProductInterface>({
       message: 'Description should be minimum 5 and maximum 1000 characters long.'
     }
   },
-  isPopular: {
+  isPinned: {
     type: Boolean,
     default: false
   },
@@ -82,7 +82,15 @@ const productSchema = new mongoose.Schema<ProductInterface>({
       type: Schema.Types.ObjectId,
       ref: 'Product'
     }
-  ]
+  ],
+  whenCreated: {
+    type: Number,
+    default: Date.now
+  },
+  totalPurchases: {
+    type: Number,
+    default: 0
+  }
 });
 
 

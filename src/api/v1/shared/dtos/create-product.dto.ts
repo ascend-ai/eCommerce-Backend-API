@@ -15,14 +15,14 @@ export class CreateProductDto implements Partial<ProductInterface> {
   description: string;
   quantityInStock: number;
   category: Categories;
-  isPopular: boolean;
+  isPinned: boolean;
   price: number;
   similarProducts: Array<Types.ObjectId>;
 
   constructor(reqBody: Record<string, any>) {
     this.name = reqBody?.name || '';
     this.description = reqBody?.description || '';
-    this.isPopular = (reqBody?.isPopular === 'true');
+    this.isPinned = (reqBody?.isPinned === 'true');
     this.price = parseFloat(reqBody?.price) || 0;
     this.quantityInStock = parseInt(reqBody?.quantityInStock) || MIN_QTY_IN_STOCK;
     this.category = reqBody?.category || Categories.OTHERS;

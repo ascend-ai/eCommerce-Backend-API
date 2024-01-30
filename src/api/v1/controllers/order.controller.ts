@@ -2,7 +2,8 @@ import {
   NextFunction,
   Response
 } from 'express';
-import {
+import mongoose, {
+  ClientSession,
   FilterQuery,
   Types
 } from 'mongoose';
@@ -33,6 +34,8 @@ import {
 } from '../data-models';
 
 export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  const session: ClientSession = await mongoose.startSession();
+  session.startTransaction();
   try {
 
     const purchases: Record<string, number> = req.body;
@@ -68,7 +71,11 @@ export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Res
         throw new Error(`Insufficient quantity of product with id ${productId} in stock.`);
       }
 
+      product.totalPurchases += productOrderQty;
+
       totalPurchaseAmount += (productOrderQty * product.price);
+
+      await product.save({ session });
     };
 
     const razorpay = new Razorpay(razorpayConfig);
@@ -85,10 +92,16 @@ export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Res
       totalPurchaseAmount
     });
 
-    await order.save();
+    await order.save({ session });
+
+    await session.commitTransaction();
+    await session.endSession();
     return next(new CustomSuccess(order, 200));
 
   } catch (error: any) {
+
+    await session.abortTransaction();
+    await session.endSession();
     return next(new CustomError(error.message, 400));
   }
 };

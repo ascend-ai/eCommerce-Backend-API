@@ -11,24 +11,24 @@ import {
 
 export class ProductFilterCriteriaDto extends BaseFilterCriteriaDto {
   category: Categories | undefined;
-  isPopular: boolean | undefined;
+  isPinned: boolean | undefined;
   search: string | undefined;
 
   constructor(queryParams: Record<string, any> = {
     page: DEFAULT_PAGINATION_PAGE,
     size: DEFAULT_PAGINATION_SIZE,
     category: undefined,
-    isPopular: undefined,
+    isPinned: undefined,
     search: undefined
   }) {
     super(queryParams);
     this.category = queryParams?.category || undefined;
-    if (queryParams?.isPopular === 'true') {
-      this.isPopular = true;
-    } else if (queryParams?.isPopular === 'false') {
-      this.isPopular = false;
+    if (queryParams?.isPinned === 'true') {
+      this.isPinned = true;
+    } else if (queryParams?.isPinned === 'false') {
+      this.isPinned = false;
     } else {
-      this.isPopular = undefined
+      this.isPinned = undefined
     }
     this.search = queryParams?.search || undefined;
   }

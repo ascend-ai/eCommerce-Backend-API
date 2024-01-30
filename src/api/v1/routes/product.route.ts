@@ -10,7 +10,7 @@ import {
   rearrangeImagesOfProduct,
   editSimilarProductsOfProduct,
   getProductsWithIds,
-  editBasicDetailsOfProduct
+  editBasicDetailsOfProduct,
 } from '../controllers';
 import {
   isAuthenticateUserAdminOrMod,
