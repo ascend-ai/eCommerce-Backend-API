@@ -10,13 +10,13 @@ export class EditProductBasicDetailsDto implements Partial<ProductInterface> {
   description: string;
   quantityInStock: number;
   category: Categories;
-  isPopular: boolean;
+  isPinned: boolean;
   price: number;
 
   constructor(reqBody: Record<string, any>) {
     this.name = reqBody?.name || '';
     this.description = reqBody?.description || '';
-    this.isPopular = ((typeof reqBody?.isPopular) === 'boolean') ? reqBody?.isPopular : false;
+    this.isPinned = ((typeof reqBody?.isPinned) === 'boolean') ? reqBody?.isPinned : false;
     this.price = parseFloat(reqBody?.price) || MIN_PRODUCT_PRICE;
     this.quantityInStock = parseInt(reqBody?.quantityInStock) || MIN_QTY_IN_STOCK;
     this.category = reqBody?.category || Categories.OTHERS;

@@ -43,7 +43,7 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
       description: productData.description,
       quantityInStock: productData.quantityInStock,
       category: productData.category,
-      isPopular: productData.isPopular,
+      isPinned: productData.isPinned,
       price: productData.price,
     });
 
@@ -94,7 +94,7 @@ export const getProducts = async (req: GetUserAuthInfoRequestInterface, res: Res
       page,
       size,
       category,
-      isPopular,
+      isPinned,
       search
     } = new ProductFilterCriteriaDto(req.query);
 
@@ -104,8 +104,8 @@ export const getProducts = async (req: GetUserAuthInfoRequestInterface, res: Res
       filterQueryList.push({ category });
     }
 
-    if (typeof isPopular === 'boolean') {
-      filterQueryList.push({ isPopular });
+    if (typeof isPinned === 'boolean') {
+      filterQueryList.push({ isPinned });
     }
 
     if (typeof search === 'string' && search.length > 0) {
@@ -363,7 +363,7 @@ export const editBasicDetailsOfProduct = async (req: GetUserAuthInfoRequestInter
     product.description = newBasicDetails.description;
     product.quantityInStock = newBasicDetails.quantityInStock;
     product.category = newBasicDetails.category;
-    product.isPopular = newBasicDetails.isPopular;
+    product.isPinned = newBasicDetails.isPinned;
     product.price = newBasicDetails.price;
 
     await product.save();
