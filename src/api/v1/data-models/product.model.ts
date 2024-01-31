@@ -1,4 +1,6 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, {
+  CallbackWithoutResultAndOptionalError, Schema
+} from 'mongoose';
 
 import {
   Categories,
@@ -83,14 +85,24 @@ const productSchema = new mongoose.Schema<ProductInterface>({
       ref: 'Product'
     }
   ],
+  totalPurchases: {
+    type: Number,
+    default: 0
+  },
   whenCreated: {
     type: Number,
     default: Date.now
   },
-  totalPurchases: {
+  whenLastUpdated: {
     type: Number,
-    default: 0
+    default: Date.now
   }
+});
+
+productSchema.pre('updateOne', async function (next: CallbackWithoutResultAndOptionalError) {
+  this.set({
+    whenLastUpdated: Date.now()
+  })
 });
 
 

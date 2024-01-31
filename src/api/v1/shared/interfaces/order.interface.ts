@@ -5,8 +5,11 @@ import {
 import {
   OrderStatus
 } from '../enums';
+import {
+  BaseModelInterface
+} from './base-model.interface';
 
-export interface OrderInterface {
+export interface OrderInterface extends BaseModelInterface {
   user: Types.ObjectId;
   razorpayOrderId: string;
   razorpayPaymentId: string;
@@ -14,5 +17,4 @@ export interface OrderInterface {
   purchases: Map<string, number>;
   totalPurchaseAmount: number;
   status: OrderStatus
-  whenCreated: number;
 }

@@ -1,3 +1,7 @@
+import {
+  BASE_SORTABLE_COLUMNS
+} from './common.constants';
+
 export const ACCEPTED_IMG_EXTENSIONS = ['jpeg', 'jpg', 'png'];
 
 /**
@@ -20,3 +24,9 @@ export const MIN_QTY_IN_STOCK = 0;
 export const MIN_PRODUCT_PRICE = 1;
 
 export const PRODUCT_IMG_UPLOAD_PATH = './dist/public';
+
+export const PRODUCT_SORTABLE_COLUMNS: readonly string[] = Object.freeze([
+  ...BASE_SORTABLE_COLUMNS,
+  'price',
+  'totalPurchases',
+]);

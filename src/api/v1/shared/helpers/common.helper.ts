@@ -2,6 +2,9 @@ import crypto from 'crypto';
 import {
   Types
 } from 'mongoose';
+import { SORT_STRING_REGEX } from '../constants';
+import { SortInfo } from '../interfaces';
+import { SortDirection } from '../enums';
 
 export const isValidJsonString = (str: string): boolean => {
   try {
@@ -36,12 +39,6 @@ export const generateHmacSha256 = (data: string, secret: string): string => {
   return hmac.digest('hex');
 }
 
-/**
- * 
- * @param arr1
- * @param arr2
- * @returns
- */
 export const doesArraysHaveSimilarElements = (arr1: Array<any>, arr2: Array<any>): boolean => {
   if (arr1.length !== arr2.length) {
     return false;
@@ -62,3 +59,25 @@ export const doesArraysHaveSimilarElements = (arr1: Array<any>, arr2: Array<any>
 
   return true;
 };
+
+export const isSortStringValid = (sortString: string, sortableColumns: readonly string[]): boolean => {
+  if(SORT_STRING_REGEX.test(sortString)) {
+    const sortableColumn = sortString.split(',')[0];
+    return sortableColumns.includes(sortableColumn);
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Use following function only if isSortStringValid returns true
+ * @param sortString 
+ * @returns 
+ */
+export const retrieveSortInfo = (sortString: string): SortInfo => {
+  const [ sortColumn, sortDirection ] = <[string, SortDirection]>sortString.split(',');
+  return {
+    sortColumn,
+    sortDirection
+  }
+}
