@@ -1,4 +1,7 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, {
+  CallbackWithoutResultAndOptionalError,
+  Schema
+} from 'mongoose';
 
 import {
   OrderInterface,
@@ -40,7 +43,17 @@ const orderSchema = new mongoose.Schema<OrderInterface>({
   whenCreated: {
     type: Number,
     default: Date.now
+  },
+  whenLastUpdated: {
+    type: Number,
+    default: Date.now
   }
+});
+
+orderSchema.pre('updateOne', async function (next: CallbackWithoutResultAndOptionalError) {
+  this.set({
+    whenLastUpdated: Date.now()
+  })
 });
 
 export const OrderModel = mongoose.model<OrderInterface>('Order', orderSchema);

@@ -1,4 +1,6 @@
-import mongoose, { CallbackWithoutResultAndOptionalError } from 'mongoose';
+import mongoose, {
+  CallbackWithoutResultAndOptionalError
+} from 'mongoose';
 
 import {
   getHashedPassword,
@@ -59,6 +61,14 @@ const userSchema = new mongoose.Schema<UserInterface>({
     required: true,
     trim: true,
     match: [PHONE_NUMBER_REGEX, 'Phone number invalid']
+  },
+  whenCreated: {
+    type: Number,
+    default: Date.now
+  },
+  whenLastUpdated: {
+    type: Number,
+    default: Date.now
   }
 });
 
@@ -77,6 +87,12 @@ userSchema.pre('save', async function (next: CallbackWithoutResultAndOptionalErr
   } catch (error: any) {
     next(error);
   }
+});
+
+userSchema.pre('updateOne', async function (next: CallbackWithoutResultAndOptionalError) {
+  this.set({
+    whenLastUpdated: Date.now()
+  })
 });
 
 export const UserModel = mongoose.model<UserInterface>('User', userSchema);

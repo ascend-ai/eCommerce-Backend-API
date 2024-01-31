@@ -6,16 +6,21 @@ import {
   AddressInterface,
   CustomError,
   CustomSuccess,
+  DEFAULT_SORT_COLUMN,
+  DEFAULT_SORT_DIRECTION,
   EditUserBasicDetailsDto,
   GetUserAuthInfoRequestInterface,
   Pagination,
+  SortDirection,
+  USER_SORTABLE_COLUMNS,
   UserDocument,
   UserFilterCriteriaDto,
-  UserInterface,
   UserRole,
   convertStringIdsToObjectId,
+  isSortStringValid,
   isValidArrayOfStrings,
-  merge
+  merge,
+  retrieveSortInfo
 } from '../shared';
 import {
   UserModel
@@ -98,61 +103,59 @@ export const getUsers = async (req: GetUserAuthInfoRequestInterface, res: Respon
     const {
       page,
       size,
+      sort,
       role,
       search
     } = new UserFilterCriteriaDto(req.query);
 
-    const filterQueryList: Array<FilterQuery<UserInterface>> = [];
+    const filterQuery: FilterQuery<UserDocument> = {};
+    const $andfilterQueryList: Array<FilterQuery<UserDocument>> = [];
+    let sortColumn: string = DEFAULT_SORT_COLUMN;
+    let sortDirection: SortDirection = DEFAULT_SORT_DIRECTION;
 
     if (role) {
-      filterQueryList.push({ role });
+      $andfilterQueryList.push({ role });
     }
 
     if (typeof search === 'string' && search.length > 0) {
-      filterQueryList.push({ email: { $regex: search, $options: 'i' } });
+      $andfilterQueryList.push({ email: { $regex: search, $options: 'i' } });
     }
 
+    if (typeof sort === 'string' && sort.length > 0) {
+      if (isSortStringValid(sort, USER_SORTABLE_COLUMNS)) {
+        ({ sortColumn, sortDirection } = retrieveSortInfo(sort));
+      } else {
+        throw new Error(`Sort string is of invalid format.`);
+      }
+    }
 
-    let totalElements: number;
-    let totalPages: number;
-    let users;
+    if ($andfilterQueryList.length > 0) {
+      filterQuery['$and'] = $andfilterQueryList;
+    }
 
-    if (filterQueryList.length > 0) {
-      totalElements = await UserModel.countDocuments({
-        $and: filterQueryList
+    const totalElements = await UserModel.countDocuments(filterQuery);
+
+    let totalPages = Math.floor(totalElements / size);
+    if ((totalElements % size) > 0) {
+      totalPages += 1;
+    }
+
+    const orders = await UserModel
+      .find(filterQuery)
+      .skip(page * size)
+      .limit(size)
+      .sort({
+        [sortColumn]: sortDirection
       });
-  
-      totalPages = Math.floor(totalElements / size);
-      if ((totalElements % size) > 0) {
-        totalPages += 1;
-      }
-  
-      users = await UserModel
-        .find({
-          $and: filterQueryList
-        })
-        .skip(page * size)
-        .limit(size);
-    } else {
-      totalElements = await UserModel.countDocuments();
-  
-      totalPages = Math.floor(totalElements / size);
-      if ((totalElements % size) > 0) {
-        totalPages += 1;
-      }
-  
-      users = await UserModel
-        .find()
-        .skip(page * size)
-        .limit(size);
-    }
 
     const pagination = new Pagination(
-      users,
+      orders,
       totalElements,
       totalPages,
       page,
-      size
+      size,
+      sortColumn,
+      sortDirection
     );
 
     return next(new CustomSuccess(pagination, 200));

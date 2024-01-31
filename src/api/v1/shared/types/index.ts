@@ -1,3 +1,3 @@
-export * from './auth.type';
-export * from './order.type';
-export * from './product.type';
+export * from './auth.types';
+export * from './order.types';
+export * from './product.types';

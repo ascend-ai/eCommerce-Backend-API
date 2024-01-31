@@ -13,17 +13,22 @@ import {
   ACCEPTED_CURRENCY,
   CustomError,
   CustomSuccess,
+  DEFAULT_SORT_COLUMN,
+  DEFAULT_SORT_DIRECTION,
   GetUserAuthInfoRequestInterface,
   INR_SUBUNIT,
   MIN_ORDERABLE_PRODUCT_QTY,
+  ORDER_SORTABLE_COLUMNS,
   OrderDocument,
   OrderFilterCriteriaDto,
-  OrderInterface,
   OrderStatus,
   Pagination,
+  SortDirection,
   UserDocument,
   UserRole,
-  generateHmacSha256
+  generateHmacSha256,
+  isSortStringValid,
+  retrieveSortInfo
 } from '../shared';
 import {
   razorpayConfig
@@ -111,60 +116,55 @@ export const getAllOrders = async (req: GetUserAuthInfoRequestInterface, res: Re
     const {
       page,
       size,
+      sort,
       status
     } = new OrderFilterCriteriaDto(req.query);
 
-    const filterQueryList: Array<FilterQuery<OrderInterface>> = [];
+    const filterQuery: FilterQuery<OrderDocument> = {};
+    const $andfilterQueryList: Array<FilterQuery<OrderDocument>> = [];
+    let sortColumn: string = DEFAULT_SORT_COLUMN;
+    let sortDirection: SortDirection = DEFAULT_SORT_DIRECTION;
 
     if (status) {
-      filterQueryList.push({ status });
+      $andfilterQueryList.push({ status });
     }
 
-
-    let totalElements: number;
-    let totalPages: number;
-    let orders;
-
-    if (filterQueryList.length > 0) {
-      totalElements = await OrderModel.countDocuments({
-        $and: filterQueryList
-      });
-  
-      totalPages = Math.floor(totalElements / size);
-      if ((totalElements % size) > 0) {
-        totalPages += 1;
+    if (typeof sort === 'string' && sort.length > 0) {
+      if (isSortStringValid(sort, ORDER_SORTABLE_COLUMNS)) {
+        ({ sortColumn, sortDirection } = retrieveSortInfo(sort));
+      } else {
+        throw new Error(`Sort string is of invalid format.`);
       }
-  
-      orders = await OrderModel
-        .find({
-          $and: filterQueryList
-        })
-        .sort({ whenCreated: -1 })
-        .skip(page * size)
-        .limit(size)
-        .populate('user');
-    } else {
-      totalElements = await OrderModel.countDocuments();
-  
-      totalPages = Math.floor(totalElements / size);
-      if ((totalElements % size) > 0) {
-        totalPages += 1;
-      }
-  
-      orders = await OrderModel
-        .find()
-        .sort({ whenCreated: -1 })
-        .skip(page * size)
-        .limit(size)
-        .populate('user');
     }
+
+    if ($andfilterQueryList.length > 0) {
+      filterQuery['$and'] = $andfilterQueryList;
+    }
+
+    const totalElements = await OrderModel.countDocuments(filterQuery);
+
+    let totalPages = Math.floor(totalElements / size);
+    if ((totalElements % size) > 0) {
+      totalPages += 1;
+    }
+
+    const orders = await OrderModel
+      .find(filterQuery)
+      .skip(page * size)
+      .limit(size)
+      .sort({
+        [sortColumn]: sortDirection
+      })
+      .populate('user');
 
     const pagination = new Pagination(
       orders,
       totalElements,
       totalPages,
       page,
-      size
+      size,
+      sortColumn,
+      sortDirection
     );
 
     return next(new CustomSuccess(pagination, 200));
@@ -189,61 +189,58 @@ export const getOrdersSpecificToUser = async (req: GetUserAuthInfoRequestInterfa
       const {
         page,
         size,
+        sort,
         status
       } = new OrderFilterCriteriaDto(req.query);
   
-      const filterQueryList: Array<FilterQuery<OrderInterface>> = [];
+      const filterQuery: FilterQuery<OrderDocument> = {};
+      const $andfilterQueryList: Array<FilterQuery<OrderDocument>> = [];
+      let sortColumn: string = DEFAULT_SORT_COLUMN;
+      let sortDirection: SortDirection = DEFAULT_SORT_DIRECTION;
 
-      filterQueryList.push({ user: userId });
+      $andfilterQueryList.push({ user: userId });
   
       if (status) {
-        filterQueryList.push({ status });
+        $andfilterQueryList.push({ status });
       }
   
-      let totalElements: number;
-      let totalPages: number;
-      let orders;
-  
-      if (filterQueryList.length > 0) {
-        totalElements = await OrderModel.countDocuments({
-          $and: filterQueryList
-        });
-    
-        totalPages = Math.floor(totalElements / size);
-        if ((totalElements % size) > 0) {
-          totalPages += 1;
+      if (typeof sort === 'string' && sort.length > 0) {
+        if (isSortStringValid(sort, ORDER_SORTABLE_COLUMNS)) {
+          ({ sortColumn, sortDirection } = retrieveSortInfo(sort));
+        } else {
+          throw new Error(`Sort string is of invalid format.`);
         }
-    
-        orders = await OrderModel
-          .find({
-            $and: filterQueryList
-          })
-          .sort({ whenCreated: -1 })
-          .skip(page * size)
-          .limit(size)
-          .populate('user');
-      } else {
-        totalElements = await OrderModel.countDocuments();
-    
-        totalPages = Math.floor(totalElements / size);
-        if ((totalElements % size) > 0) {
-          totalPages += 1;
-        }
-    
-        orders = await OrderModel
-          .find()
-          .sort({ whenCreated: -1 })
-          .skip(page * size)
-          .limit(size)
-          .populate('user');
       }
+  
+  
+      if ($andfilterQueryList.length > 0) {
+        filterQuery['$and'] = $andfilterQueryList;
+      }
+  
+      const totalElements = await OrderModel.countDocuments(filterQuery);
+  
+      let totalPages = Math.floor(totalElements / size);
+      if ((totalElements % size) > 0) {
+        totalPages += 1;
+      }
+  
+      const orders = await OrderModel
+        .find(filterQuery)
+        .skip(page * size)
+        .limit(size)
+        .sort({
+          [sortColumn]: sortDirection
+        })
+        .populate('user');
   
       const pagination = new Pagination(
         orders,
         totalElements,
         totalPages,
         page,
-        size
+        size,
+        sortColumn,
+        sortDirection
       );
   
       return next(new CustomSuccess(pagination, 200));

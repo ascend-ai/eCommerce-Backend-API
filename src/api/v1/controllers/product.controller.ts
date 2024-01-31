@@ -17,13 +17,18 @@ import {
   deleteProductImageFile,
   doesArraysHaveSimilarElements,
   uploadProductImageFile,
-  ProductInterface,
   EditProductBasicDetailsDto,
   merge,
   ProductDocument,
   MIN_IMAGES_PER_PRODUCT,
   ProductImageDocument,
-  ProductFilterCriteriaDto
+  ProductFilterCriteriaDto,
+  isSortStringValid,
+  PRODUCT_SORTABLE_COLUMNS,
+  retrieveSortInfo,
+  SortDirection,
+  DEFAULT_SORT_COLUMN,
+  DEFAULT_SORT_DIRECTION
 } from '../shared';
 import {
   ProductImageModel,
@@ -93,68 +98,65 @@ export const getProducts = async (req: GetUserAuthInfoRequestInterface, res: Res
     const {
       page,
       size,
+      sort,
       category,
       isPinned,
-      search
+      search,
     } = new ProductFilterCriteriaDto(req.query);
 
-    const filterQueryList: Array<FilterQuery<ProductInterface>> = [];
+    const filterQuery: FilterQuery<ProductDocument> = {};
+    const $andfilterQueryList: Array<FilterQuery<ProductDocument>> = [];
+    let sortColumn: string = DEFAULT_SORT_COLUMN;
+    let sortDirection: SortDirection = DEFAULT_SORT_DIRECTION;
 
     if (category) {
-      filterQueryList.push({ category });
+      $andfilterQueryList.push({ category });
     }
 
     if (typeof isPinned === 'boolean') {
-      filterQueryList.push({ isPinned });
+      $andfilterQueryList.push({ isPinned });
     }
 
     if (typeof search === 'string' && search.length > 0) {
-      filterQueryList.push({ name: { $regex: search, $options: 'i' } });
+      $andfilterQueryList.push({ name: { $regex: search, $options: 'i' } });
     }
 
-
-    let totalElements: number;
-    let totalPages: number;
-    let products;
-
-    if (filterQueryList.length > 0) {
-      totalElements = await ProductModel.countDocuments({
-        $and: filterQueryList
-      });
-  
-      totalPages = Math.floor(totalElements / size);
-      if ((totalElements % size) > 0) {
-        totalPages += 1;
+    if (typeof sort === 'string' && sort.length > 0) {
+      if (isSortStringValid(sort, PRODUCT_SORTABLE_COLUMNS)) {
+        ({ sortColumn, sortDirection } = retrieveSortInfo(sort));
+      } else {
+        throw new Error(`Sort string is of invalid format.`);
       }
-  
-      products = await ProductModel
-        .find({
-          $and: filterQueryList
-        })
-        .skip(page * size)
-        .limit(size)
-        .populate('images');
-    } else {
-      totalElements = await ProductModel.countDocuments();
-  
-      totalPages = Math.floor(totalElements / size);
-      if ((totalElements % size) > 0) {
-        totalPages += 1;
-      }
-  
-      products = await ProductModel
-        .find()
-        .skip(page * size)
-        .limit(size)
-        .populate('images');
     }
+
+    if ($andfilterQueryList.length > 0) {
+      filterQuery['$and'] = $andfilterQueryList;
+    }
+
+    const totalElements = await ProductModel.countDocuments(filterQuery);
+
+    let totalPages = Math.floor(totalElements / size);
+    if ((totalElements % size) > 0) {
+      totalPages += 1;
+    }
+
+    const products = await ProductModel
+      .find(filterQuery)
+      .skip(page * size)
+      .limit(size)
+      .sort({
+        [sortColumn]: sortDirection
+      })
+      .populate('images');
 
     const pagination = new Pagination(
       products,
       totalElements,
       totalPages,
       page,
-      size
+      size,
+      sortColumn,
+      sortDirection
     );
 
     return next(new CustomSuccess(pagination, 200));
