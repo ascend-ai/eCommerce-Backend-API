@@ -5,7 +5,7 @@
   "scripts": {
     "build": "npx tsc",
     "start": "MODE=production node dist/src/main.js",
-    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/src/main.js\""
+    "dev": "nodemon ./src/main.ts"
   },
   "author": "",
   "license": "ISC",
@@ -20,7 +20,8 @@
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "razorpay": "^2.9.2",
-    "sharp": "^0.32.6"
+    "sharp": "^0.32.6",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
@@ -30,7 +31,6 @@
     "@types/morgan": "^1.9.5",
     "@types/multer": "^1.4.8",
     "@types/node": "^20.5.7",
-    "concurrently": "^8.2.1",
     "nodemon": "^3.0.1",
     "typescript": "^5.2.2"
   }
