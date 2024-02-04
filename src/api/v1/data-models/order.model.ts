@@ -40,6 +40,14 @@ const orderSchema = new mongoose.Schema<OrderInterface>({
     type: Number,
     required: true
   },
+  shippingCharge: {
+    type: Number,
+    required: true
+  },
+  isSelfPickup: {
+    type: Boolean,
+    default: false,
+  },
   whenCreated: {
     type: Number,
     default: Date.now

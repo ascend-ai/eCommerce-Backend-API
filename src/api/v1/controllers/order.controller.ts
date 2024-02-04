@@ -11,6 +11,7 @@ import Razorpay from 'razorpay';
 
 import {
   ACCEPTED_CURRENCY,
+  CreateOrderDto,
   CustomError,
   CustomSuccess,
   DEFAULT_SORT_COLUMN,
@@ -18,11 +19,13 @@ import {
   GetUserAuthInfoRequestInterface,
   INR_SUBUNIT,
   MIN_ORDERABLE_PRODUCT_QTY,
+  NO_SHIPPING_CHARGE_THRESHOLD,
   ORDER_SORTABLE_COLUMNS,
   OrderDocument,
   OrderFilterCriteriaDto,
   OrderStatus,
   Pagination,
+  SHIPPING_CHARGE,
   SortDirection,
   UserDocument,
   UserRole,
@@ -43,21 +46,11 @@ export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Res
   session.startTransaction();
   try {
 
-    const purchases: Record<string, number> = req.body;
-
-    if (!(typeof purchases === 'object' &&
-        purchases !== null &&
-        !Array.isArray(purchases))) {
-      throw new Error(`Invalid format of purchases.`);
-    }
-
-    if (!(Object.entries(purchases).length > 0)) {
-      throw new Error(`Purchases not found.`);
-    }
+    const orderData = new CreateOrderDto(req.body);
 
     let totalPurchaseAmount: number = 0;
 
-    for (let [key, value] of Object.entries(purchases)) {
+    for (let [key, value] of Object.entries(orderData.purchases)) {
       const productId = new Types.ObjectId(key);
       const productOrderQty = value;
 
@@ -83,9 +76,13 @@ export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Res
       await product.save({ session });
     };
 
+    const isShippingChargeApplicable: boolean =  !orderData.isSelfPickup && (totalPurchaseAmount < NO_SHIPPING_CHARGE_THRESHOLD);
+    const shippingCharge: number = isShippingChargeApplicable ? SHIPPING_CHARGE : 0;
+    
     const razorpay = new Razorpay(razorpayConfig);
+    const razorpayAmount = (totalPurchaseAmount + shippingCharge) * INR_SUBUNIT;
     const razorpayOrder = await razorpay.orders.create({
-      amount: totalPurchaseAmount * INR_SUBUNIT,
+      amount: razorpayAmount,
       currency: ACCEPTED_CURRENCY,
       payment_capture: false
     });
@@ -93,8 +90,10 @@ export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Res
     const order = new OrderModel({
       user: req.loggedInUser?._id,
       razorpayOrderId: razorpayOrder.id,
-      purchases,
-      totalPurchaseAmount
+      purchases: orderData.purchases,
+      isSelfPickup: orderData.isSelfPickup,
+      totalPurchaseAmount,
+      shippingCharge
     });
 
     await order.save({ session });
@@ -121,12 +120,12 @@ export const getAllOrders = async (req: GetUserAuthInfoRequestInterface, res: Re
     } = new OrderFilterCriteriaDto(req.query);
 
     const filterQuery: FilterQuery<OrderDocument> = {};
-    const $andfilterQueryList: Array<FilterQuery<OrderDocument>> = [];
+    const $andFilterQueryList: Array<FilterQuery<OrderDocument>> = [];
     let sortColumn: string = DEFAULT_SORT_COLUMN;
     let sortDirection: SortDirection = DEFAULT_SORT_DIRECTION;
 
     if (status) {
-      $andfilterQueryList.push({ status });
+      $andFilterQueryList.push({ status });
     }
 
     if (typeof sort === 'string' && sort.length > 0) {
@@ -137,8 +136,8 @@ export const getAllOrders = async (req: GetUserAuthInfoRequestInterface, res: Re
       }
     }
 
-    if ($andfilterQueryList.length > 0) {
-      filterQuery['$and'] = $andfilterQueryList;
+    if ($andFilterQueryList.length > 0) {
+      filterQuery['$and'] = $andFilterQueryList;
     }
 
     const totalElements = await OrderModel.countDocuments(filterQuery);
@@ -194,14 +193,16 @@ export const getOrdersSpecificToUser = async (req: GetUserAuthInfoRequestInterfa
       } = new OrderFilterCriteriaDto(req.query);
   
       const filterQuery: FilterQuery<OrderDocument> = {};
-      const $andfilterQueryList: Array<FilterQuery<OrderDocument>> = [];
+      const $andFilterQueryList: Array<FilterQuery<OrderDocument>> = [];
       let sortColumn: string = DEFAULT_SORT_COLUMN;
       let sortDirection: SortDirection = DEFAULT_SORT_DIRECTION;
 
-      $andfilterQueryList.push({ user: userId });
+      $andFilterQueryList.push({ user: userId });
   
       if (status) {
-        $andfilterQueryList.push({ status });
+        $andFilterQueryList.push({ status });
+      } else {
+        $andFilterQueryList.push({ status: { $ne: OrderStatus.PENDING } })
       }
   
       if (typeof sort === 'string' && sort.length > 0) {
@@ -213,8 +214,8 @@ export const getOrdersSpecificToUser = async (req: GetUserAuthInfoRequestInterfa
       }
   
   
-      if ($andfilterQueryList.length > 0) {
-        filterQuery['$and'] = $andfilterQueryList;
+      if ($andFilterQueryList.length > 0) {
+        filterQuery['$and'] = $andFilterQueryList;
       }
   
       const totalElements = await OrderModel.countDocuments(filterQuery);
