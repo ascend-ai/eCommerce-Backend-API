@@ -109,16 +109,16 @@ export const getUsers = async (req: GetUserAuthInfoRequestInterface, res: Respon
     } = new UserFilterCriteriaDto(req.query);
 
     const filterQuery: FilterQuery<UserDocument> = {};
-    const $andfilterQueryList: Array<FilterQuery<UserDocument>> = [];
+    const $andFilterQueryList: Array<FilterQuery<UserDocument>> = [];
     let sortColumn: string = DEFAULT_SORT_COLUMN;
     let sortDirection: SortDirection = DEFAULT_SORT_DIRECTION;
 
     if (role) {
-      $andfilterQueryList.push({ role });
+      $andFilterQueryList.push({ role });
     }
 
     if (typeof search === 'string' && search.length > 0) {
-      $andfilterQueryList.push({ email: { $regex: search, $options: 'i' } });
+      $andFilterQueryList.push({ email: { $regex: search, $options: 'i' } });
     }
 
     if (typeof sort === 'string' && sort.length > 0) {
@@ -129,8 +129,8 @@ export const getUsers = async (req: GetUserAuthInfoRequestInterface, res: Respon
       }
     }
 
-    if ($andfilterQueryList.length > 0) {
-      filterQuery['$and'] = $andfilterQueryList;
+    if ($andFilterQueryList.length > 0) {
+      filterQuery['$and'] = $andFilterQueryList;
     }
 
     const totalElements = await UserModel.countDocuments(filterQuery);

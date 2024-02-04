@@ -16,5 +16,7 @@ export interface OrderInterface extends BaseModelInterface {
   razorpaySignature: string;
   purchases: Map<string, number>;
   totalPurchaseAmount: number;
-  status: OrderStatus
+  shippingCharge: number;
+  status: OrderStatus;
+  isSelfPickup: boolean;
 }

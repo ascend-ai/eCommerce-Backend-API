@@ -1,3 +1,4 @@
+export * from './create-order.dto';
 export * from './auth-credentials.dto';
 export * from './create-product.dto';
 export * from './base-filter-criteria.dto';

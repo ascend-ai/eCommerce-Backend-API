@@ -105,20 +105,20 @@ export const getProducts = async (req: GetUserAuthInfoRequestInterface, res: Res
     } = new ProductFilterCriteriaDto(req.query);
 
     const filterQuery: FilterQuery<ProductDocument> = {};
-    const $andfilterQueryList: Array<FilterQuery<ProductDocument>> = [];
+    const $andFilterQueryList: Array<FilterQuery<ProductDocument>> = [];
     let sortColumn: string = DEFAULT_SORT_COLUMN;
     let sortDirection: SortDirection = DEFAULT_SORT_DIRECTION;
 
     if (category) {
-      $andfilterQueryList.push({ category });
+      $andFilterQueryList.push({ category });
     }
 
     if (typeof isPinned === 'boolean') {
-      $andfilterQueryList.push({ isPinned });
+      $andFilterQueryList.push({ isPinned });
     }
 
     if (typeof search === 'string' && search.length > 0) {
-      $andfilterQueryList.push({ name: { $regex: search, $options: 'i' } });
+      $andFilterQueryList.push({ name: { $regex: search, $options: 'i' } });
     }
 
     if (typeof sort === 'string' && sort.length > 0) {
@@ -129,8 +129,8 @@ export const getProducts = async (req: GetUserAuthInfoRequestInterface, res: Res
       }
     }
 
-    if ($andfilterQueryList.length > 0) {
-      filterQuery['$and'] = $andfilterQueryList;
+    if ($andFilterQueryList.length > 0) {
+      filterQuery['$and'] = $andFilterQueryList;
     }
 
     const totalElements = await ProductModel.countDocuments(filterQuery);
@@ -199,11 +199,10 @@ export const getProductsWithIds = async (req: GetUserAuthInfoRequestInterface, r
       const product = await ProductModel.findById(productId)
         .populate('images');
 
-      if (!product) {
-        throw new Error(`Product with id ${productId} doesn't exist`);
+      if (product) {
+        products.push(product);
       }
 
-      products.push(product);
     }
 
     
