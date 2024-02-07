@@ -1,4 +1,6 @@
-import { Types } from 'mongoose';
+import {
+  Types
+} from 'mongoose';
 
 import {
   convertStringIdsToObjectId,
@@ -6,7 +8,6 @@ import {
   isValidArrayOfStrings,
   Categories,
   ProductInterface,
-  MIN_PRODUCT_PRICE,
   MIN_QTY_IN_STOCK
 } from '../../shared';
 
@@ -16,14 +17,16 @@ export class CreateProductDto implements Partial<ProductInterface> {
   quantityInStock: number;
   category: Categories;
   isPinned: boolean;
-  price: number;
+  maxRetailPrice: number;
+  sellingPrice: number;
   similarProducts: Array<Types.ObjectId>;
 
   constructor(reqBody: Record<string, any>) {
     this.name = reqBody?.name || '';
     this.description = reqBody?.description || '';
     this.isPinned = (reqBody?.isPinned === 'true');
-    this.price = parseFloat(reqBody?.price) || 0;
+    this.maxRetailPrice = parseFloat(reqBody?.maxRetailPrice) || 0;
+    this.sellingPrice = parseFloat(reqBody?.sellingPrice) || 0;
     this.quantityInStock = parseInt(reqBody?.quantityInStock) || MIN_QTY_IN_STOCK;
     this.category = reqBody?.category || Categories.OTHERS;
     if (!(typeof reqBody?.similarProducts === 'undefined')) {

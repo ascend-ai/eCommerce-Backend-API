@@ -71,13 +71,13 @@ export const editBasicDetailsOfUser = async (req: GetUserAuthInfoRequestInterfac
     }
     
     const isLoggedInUserSelf: boolean = (<UserDocument>req.loggedInUser)?._id.equals(userId);
-    
+
 
     if (isLoggedInUserSelf) {
       const basicDetails = new EditUserBasicDetailsDto(user);
       const newBasicDetails = new EditUserBasicDetailsDto({});
       newBasicDetails.phoneNumber = req.body?.phoneNumber || basicDetails.phoneNumber;
-      newBasicDetails.address = merge<AddressInterface>(basicDetails.address, req.body?.address);
+      newBasicDetails.address = merge<AddressInterface, any>(basicDetails.address, req.body?.address);
 
       user.address = newBasicDetails.address;
       user.address.streetAddressLine1 = newBasicDetails.address.streetAddressLine1;

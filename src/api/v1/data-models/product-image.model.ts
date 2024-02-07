@@ -21,10 +21,9 @@ const productImageSchema = new mongoose.Schema<ProductImageInterface>({
   }
 });
 
-productImageSchema.pre('updateOne', async function (next: CallbackWithoutResultAndOptionalError) {
-  this.set({
-    whenLastUpdated: Date.now()
-  })
+productImageSchema.pre('updateOne', { document: true, query: false }, function (next: CallbackWithoutResultAndOptionalError) {
+  this.whenLastUpdated = Date.now();
+  next();
 });
 
 export const ProductImageModel = mongoose.model<ProductImageInterface>('ProductImage', productImageSchema);

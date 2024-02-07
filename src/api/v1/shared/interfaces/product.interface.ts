@@ -6,7 +6,8 @@ import {
 export interface ProductInterface extends BaseModelInterface {
   name: string;
   description: string;
-  price: number;
+  sellingPrice: number;
+  maxRetailPrice: number;
   isPinned: boolean;
   quantityInStock: number;
   images: Array<Types.ObjectId>;

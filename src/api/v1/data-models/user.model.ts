@@ -89,10 +89,9 @@ userSchema.pre('save', async function (next: CallbackWithoutResultAndOptionalErr
   }
 });
 
-userSchema.pre('updateOne', async function (next: CallbackWithoutResultAndOptionalError) {
-  this.set({
-    whenLastUpdated: Date.now()
-  })
+userSchema.pre('updateOne', { document: true, query: false }, function (next: CallbackWithoutResultAndOptionalError) {
+  this.whenLastUpdated = Date.now();
+  next();
 });
 
 export const UserModel = mongoose.model<UserInterface>('User', userSchema);
