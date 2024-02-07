@@ -24,7 +24,7 @@ export const convertStringIdsToObjectId = (arrOfStr: Array<string>): Array<Types
       .map(productId => new Types.ObjectId(productId));
 }
 
-export function merge<T>(target: any, source: any): T {
+export function merge<T1 extends Object, T2 extends T1>(target: T1, source: T2): T1 {
   for (let key in target) {
     if (target.hasOwnProperty(key) && source.hasOwnProperty(key)) {
       target[key] = source[key];

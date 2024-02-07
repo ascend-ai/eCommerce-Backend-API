@@ -36,13 +36,18 @@ const orderSchema = new mongoose.Schema<OrderInterface>({
     ],
     default: OrderStatus.PENDING
   },
-  totalPurchaseAmount: {
+  trackingResource: String,
+  purchaseAmount: {
     type: Number,
     required: true
   },
   shippingCharge: {
     type: Number,
     required: true
+  },
+  totalAmount: {
+    type: Number,
+    default: 0
   },
   isSelfPickup: {
     type: Boolean,
@@ -58,10 +63,19 @@ const orderSchema = new mongoose.Schema<OrderInterface>({
   }
 });
 
-orderSchema.pre('updateOne', async function (next: CallbackWithoutResultAndOptionalError) {
-  this.set({
-    whenLastUpdated: Date.now()
-  })
+orderSchema.pre('save', function (next: CallbackWithoutResultAndOptionalError) {
+  if (this.isModified('purchaseAmount') || this.isModified('shippingCharge')) {
+    this.totalAmount = this.purchaseAmount + this.shippingCharge;
+  }
+  next();
+});
+
+orderSchema.pre('updateOne', { document: true, query: false }, function (next: CallbackWithoutResultAndOptionalError) {
+  if (this.isModified('purchaseAmount') || this.isModified('shippingCharge')) {
+    this.totalAmount = this.purchaseAmount + this.shippingCharge;
+  }
+  this.whenLastUpdated = Date.now();
+  next();
 });
 
 export const OrderModel = mongoose.model<OrderInterface>('Order', orderSchema);

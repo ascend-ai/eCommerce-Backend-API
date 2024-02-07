@@ -26,6 +26,6 @@ export const PENDING_ORDER_DELETION_DELAY = 60 * 60 * 1000;
 
 export const ORDER_SORTABLE_COLUMNS: readonly string[] = Object.freeze([
   ...BASE_SORTABLE_COLUMNS,
-  'totalPurchaseAmount',
+  'totalAmount',
 ]);
 

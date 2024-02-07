@@ -48,7 +48,7 @@ export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Res
 
     const orderData = new CreateOrderDto(req.body);
 
-    let totalPurchaseAmount: number = 0;
+    let purchaseAmount: number = 0;
 
     for (let [key, value] of Object.entries(orderData.purchases)) {
       const productId = new Types.ObjectId(key);
@@ -71,16 +71,16 @@ export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Res
 
       product.totalPurchases += productOrderQty;
 
-      totalPurchaseAmount += (productOrderQty * product.price);
+      purchaseAmount += (productOrderQty * product.sellingPrice);
 
       await product.save({ session });
     };
 
-    const isShippingChargeApplicable: boolean =  !orderData.isSelfPickup && (totalPurchaseAmount < NO_SHIPPING_CHARGE_THRESHOLD);
+    const isShippingChargeApplicable: boolean =  !orderData.isSelfPickup && (purchaseAmount < NO_SHIPPING_CHARGE_THRESHOLD);
     const shippingCharge: number = isShippingChargeApplicable ? SHIPPING_CHARGE : 0;
     
     const razorpay = new Razorpay(razorpayConfig);
-    const razorpayAmount = (totalPurchaseAmount + shippingCharge) * INR_SUBUNIT;
+    const razorpayAmount = (purchaseAmount + shippingCharge) * INR_SUBUNIT;
     const razorpayOrder = await razorpay.orders.create({
       amount: razorpayAmount,
       currency: ACCEPTED_CURRENCY,
@@ -92,7 +92,7 @@ export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Res
       razorpayOrderId: razorpayOrder.id,
       purchases: orderData.purchases,
       isSelfPickup: orderData.isSelfPickup,
-      totalPurchaseAmount,
+      purchaseAmount,
       shippingCharge
     });
 

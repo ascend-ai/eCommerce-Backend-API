@@ -49,7 +49,8 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
       quantityInStock: productData.quantityInStock,
       category: productData.category,
       isPinned: productData.isPinned,
-      price: productData.price,
+      maxRetailPrice: productData.maxRetailPrice,
+      sellingPrice: productData.sellingPrice,
     });
 
     if (!Array.isArray(productImgFiles) ||
@@ -358,14 +359,15 @@ export const editBasicDetailsOfProduct = async (req: GetUserAuthInfoRequestInter
     }
 
     const basicDetails = new EditProductBasicDetailsDto(product);
-    const newBasicDetails = merge<EditProductBasicDetailsDto>(basicDetails, req.body);
+    const newBasicDetails = merge<EditProductBasicDetailsDto, any>(basicDetails, req.body);
 
     product.name = newBasicDetails.name;
     product.description = newBasicDetails.description;
     product.quantityInStock = newBasicDetails.quantityInStock;
     product.category = newBasicDetails.category;
     product.isPinned = newBasicDetails.isPinned;
-    product.price = newBasicDetails.price;
+    product.maxRetailPrice = newBasicDetails.maxRetailPrice;
+    product.sellingPrice = newBasicDetails.sellingPrice;
 
     await product.save();
     return next(new CustomSuccess(product, 200));

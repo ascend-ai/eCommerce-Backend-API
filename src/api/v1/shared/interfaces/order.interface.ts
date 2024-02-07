@@ -12,11 +12,13 @@ import {
 export interface OrderInterface extends BaseModelInterface {
   user: Types.ObjectId;
   razorpayOrderId: string;
-  razorpayPaymentId: string;
-  razorpaySignature: string;
+  razorpayPaymentId?: string;
+  razorpaySignature?: string;
+  trackingResource?: string;
   purchases: Map<string, number>;
-  totalPurchaseAmount: number;
+  purchaseAmount: number;
   shippingCharge: number;
+  totalAmount: number;
   status: OrderStatus;
   isSelfPickup: boolean;
 }

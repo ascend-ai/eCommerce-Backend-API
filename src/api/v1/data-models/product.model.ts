@@ -1,5 +1,6 @@
 import mongoose, {
-  CallbackWithoutResultAndOptionalError, Schema
+  CallbackWithoutResultAndOptionalError,
+  Schema
 } from 'mongoose';
 
 import {
@@ -31,13 +32,24 @@ const productSchema = new mongoose.Schema<ProductInterface>({
     type: Boolean,
     default: false
   },
-  price: {
+  maxRetailPrice: {
     type: Number,
     validate: {
       validator: function (value: number) {
         return value >= MIN_PRODUCT_PRICE;
       },
-      message: 'Price cannot be less than 0.',
+      message: `Max retail price cannot be less than ${MIN_PRODUCT_PRICE}.`,
+    },
+    required: true
+  },
+  sellingPrice: {
+    type: Number,
+    validate: {
+      validator: function (this: ProductInterface) {
+        return this.sellingPrice >= MIN_PRODUCT_PRICE &&
+               this.sellingPrice <= this.maxRetailPrice;
+      },
+      message: `Selling price cannot be less than ${MIN_PRODUCT_PRICE} & no more than max retail price.`,
     },
     required: true
   },
@@ -47,7 +59,7 @@ const productSchema = new mongoose.Schema<ProductInterface>({
       validator: function (value: number) {
         return value >= MIN_QTY_IN_STOCK;
       },
-      message: 'Quantity cannot be less than 0.',
+      message: `Quantity cannot be less than ${MIN_QTY_IN_STOCK}.`,
     },
     required: true,
   },
@@ -63,7 +75,7 @@ const productSchema = new mongoose.Schema<ProductInterface>({
         return this.images.length <= MAX_IMAGES_PER_PRODUCT &&
                this.images.length >= MIN_IMAGES_PER_PRODUCT;
       },
-      message: 'The images array should contain no less than 1 & no more than 3 elements.',
+      message: `The images array should contain no less than ${MIN_IMAGES_PER_PRODUCT} & no more than ${MAX_IMAGES_PER_PRODUCT} images.`,
     },
   },
   category: {
@@ -99,10 +111,9 @@ const productSchema = new mongoose.Schema<ProductInterface>({
   }
 });
 
-productSchema.pre('updateOne', async function (next: CallbackWithoutResultAndOptionalError) {
-  this.set({
-    whenLastUpdated: Date.now()
-  })
+productSchema.pre('updateOne', { document: true, query: false }, function (next: CallbackWithoutResultAndOptionalError) {
+  this.whenLastUpdated = Date.now();
+  next();
 });
 
 

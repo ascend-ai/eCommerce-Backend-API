@@ -27,6 +27,6 @@ export const PRODUCT_IMG_UPLOAD_PATH = './dist/public';
 
 export const PRODUCT_SORTABLE_COLUMNS: readonly string[] = Object.freeze([
   ...BASE_SORTABLE_COLUMNS,
-  'price',
+  'sellingPrice',
   'totalPurchases',
 ]);
