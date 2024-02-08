@@ -1,4 +1,7 @@
 import {
+  ProductInterface
+} from '../interfaces';
+import {
   BASE_SORTABLE_COLUMNS
 } from './common.constants';
 
@@ -25,8 +28,8 @@ export const MIN_PRODUCT_PRICE = 1;
 
 export const PRODUCT_IMG_UPLOAD_PATH = './dist/public';
 
-export const PRODUCT_SORTABLE_COLUMNS: readonly string[] = Object.freeze([
+export const PRODUCT_SORTABLE_COLUMNS: readonly (keyof ProductInterface)[] = [
   ...BASE_SORTABLE_COLUMNS,
   'sellingPrice',
   'totalPurchases',
-]);
+];
