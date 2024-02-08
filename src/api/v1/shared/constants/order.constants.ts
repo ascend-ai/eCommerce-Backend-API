@@ -1,4 +1,7 @@
 import {
+  OrderInterface
+} from '../interfaces';
+import {
   BASE_SORTABLE_COLUMNS
 } from './common.constants';
 
@@ -24,8 +27,7 @@ export const INR_SUBUNIT = 100;
  */
 export const PENDING_ORDER_DELETION_DELAY = 60 * 60 * 1000;
 
-export const ORDER_SORTABLE_COLUMNS: readonly string[] = Object.freeze([
+export const ORDER_SORTABLE_COLUMNS: readonly (keyof OrderInterface)[] = [
   ...BASE_SORTABLE_COLUMNS,
   'totalAmount',
-]);
-
+] as const;
