@@ -6,10 +6,13 @@ import {
   UserRole
 } from '../enums';
 import {
+  UserInterface
+} from '../interfaces';
+import {
   BaseFilterCriteriaDto
 } from './base-filter-criteria.dto';
 
-export class UserFilterCriteriaDto extends BaseFilterCriteriaDto {
+export class UserFilterCriteriaDto extends BaseFilterCriteriaDto implements Partial<UserInterface> {
   role: UserRole | undefined;
   search: string | undefined;
 

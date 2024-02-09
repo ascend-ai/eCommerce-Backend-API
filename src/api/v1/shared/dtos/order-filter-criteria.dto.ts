@@ -6,10 +6,13 @@ import {
   OrderStatus
 } from '../enums';
 import {
+  OrderInterface
+} from '../interfaces';
+import {
   BaseFilterCriteriaDto
 } from './base-filter-criteria.dto';
 
-export class OrderFilterCriteriaDto extends BaseFilterCriteriaDto {
+export class OrderFilterCriteriaDto extends BaseFilterCriteriaDto implements Partial<OrderInterface> {
   status: OrderStatus | undefined;
 
   constructor(queryParams: Record<string, any> = {
