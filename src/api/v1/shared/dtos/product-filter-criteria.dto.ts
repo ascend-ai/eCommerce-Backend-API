@@ -6,10 +6,13 @@ import {
   Categories
 } from '../enums';
 import {
+  ProductInterface
+} from '../interfaces';
+import {
   BaseFilterCriteriaDto
 } from './base-filter-criteria.dto';
 
-export class ProductFilterCriteriaDto extends BaseFilterCriteriaDto {
+export class ProductFilterCriteriaDto extends BaseFilterCriteriaDto implements Partial<ProductInterface> {
   category: Categories | undefined;
   isPinned: boolean | undefined;
   search: string | undefined;
