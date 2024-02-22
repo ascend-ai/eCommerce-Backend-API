@@ -61,13 +61,13 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
     if (productImgFiles.length > MAX_IMAGES_PER_PRODUCT) {
       throw new Error(`Maximum 3 images per product.`);
     }
-    
-    for (let file of productImgFiles) {
+
+    const createProductImages: Array<Promise<any>> = productImgFiles.map(async (file) => {
       const productImgId = await createProductImage(file, product._id, session);
       (product.images as unknown as Array<ProductImageDocument>)?.push(productImgId);
-    }
+    })
 
-    for (let productId of <Array<Types.ObjectId>>productData.similarProducts) {
+    const assignSimilarProducts: Array<Promise<any>> = productData.similarProducts.map(async (productId) => {
       const similarProduct = await ProductModel.findById(productId);
       if (!similarProduct) {
         throw new Error(`Product with id ${productId} from similar product array not found`);
@@ -75,14 +75,17 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
       product.similarProducts.push(productId);
       similarProduct.similarProducts.push(product._id);
       await similarProduct.save({ session });
-    }
+    });
+
+    await Promise.all(<Array<Promise<any>>>[
+      ...createProductImages,
+      ...assignSimilarProducts
+    ]);
 
     await product.save({ session });
     await session.commitTransaction();
 
-    for (let file of productImgFiles) {
-      await uploadProductImageFile(file);
-    }
+    await Promise.all(productImgFiles.map(uploadProductImageFile));
 
     await session.endSession();
     return next(new CustomSuccess(product, 200));
@@ -134,21 +137,22 @@ export const getProducts = async (req: GetUserAuthInfoRequestInterface, res: Res
       filterQuery['$and'] = $andFilterQueryList;
     }
 
-    const totalElements = await ProductModel.countDocuments(filterQuery);
+    const [ totalElements, products ] = await Promise.all(<Array<Promise<any>>>[
+      ProductModel.countDocuments(filterQuery),
+      ProductModel
+        .find(filterQuery)
+        .skip(page * size)
+        .limit(size)
+        .sort({
+          [sortColumn]: sortDirection
+        })
+        .populate('images')
+    ]);
 
     let totalPages = Math.floor(totalElements / size);
     if ((totalElements % size) > 0) {
       totalPages += 1;
     }
-
-    const products = await ProductModel
-      .find(filterQuery)
-      .skip(page * size)
-      .limit(size)
-      .sort({
-        [sortColumn]: sortDirection
-      })
-      .populate('images');
 
     const pagination = new Pagination(
       products,
@@ -196,16 +200,16 @@ export const getProductsWithIds = async (req: GetUserAuthInfoRequestInterface, r
 
     const products: Array<any> = [];
 
-    for (let productId of productIds) {
-      const product = await ProductModel.findById(productId)
-        .populate('images');
-
-      if (product) {
-        products.push(product);
-      }
-
-    }
-
+    await Promise.all(
+      productIds.map(async (productId) => {
+        const product = await ProductModel.findById(productId)
+          .populate('images');
+  
+        if (product) {
+          products.push(product);
+        }
+      })
+    );
     
     return next(new CustomSuccess(products, 200));
   } catch (error: any) {
@@ -262,11 +266,13 @@ export const deleteImageOfProduct = async (req: GetUserAuthInfoRequestInterface,
   try {
     const { productId, imageId } = req.params;
 
-    const product = await ProductModel
-      .findById(productId)
-      .populate('images');
-
-    const image  = await ProductImageModel.findById(imageId);
+    const [ product, image ] = await Promise.all([
+      ProductModel
+        .findById(productId)
+        .populate('images'),
+      ProductImageModel
+        .findById(imageId)
+    ]);
 
     const imagePath = <string>image?.url;
 
@@ -292,8 +298,11 @@ export const deleteImageOfProduct = async (req: GetUserAuthInfoRequestInterface,
 
     product.images?.splice(indexOfImage, 1);
 
-    await image.deleteOne({ session });
-    await product.save({ session });
+    await Promise.all(<Array<Promise<any>>>[
+      image.deleteOne({ session }),
+      product.save({ session })
+    ]);
+
     await session.commitTransaction();
 
     await deleteProductImageFile(imagePath);
@@ -399,35 +408,43 @@ export const editSimilarProductsOfProduct = async (req: GetUserAuthInfoRequestIn
       throw new Error(`Product with id ${productId} not found.`);
     }
 
-    const removeSimilarProductIds = product.similarProducts.filter(oldProductId => {
-      return !newSimilarProductList.some(newProductId => newProductId.equals(oldProductId));
-    });
+    const removeSimilarProductIds: Array<Promise<void>> = product.similarProducts
+      .filter(oldProductId => {
+        return !newSimilarProductList.some(newProductId => newProductId.equals(oldProductId));
+      })
+      .map(async (productId) => {
+        const oldSimilarProduct = await ProductModel.findById(productId);
+        if (oldSimilarProduct) {
+          product.similarProducts = product.similarProducts.filter(id => !id.equals(productId));
+          oldSimilarProduct.similarProducts = oldSimilarProduct.similarProducts.filter(id => !id.equals(product._id));
+          await oldSimilarProduct?.save({ session });
+        }
+      });
 
-    const addSimilarProductIds = newSimilarProductList.filter(newProductId => {
-      return !product.similarProducts.some(oldProductId => oldProductId.equals(newProductId));
-    });
+    await Promise.all(
+      removeSimilarProductIds
+    );
 
-    for (let productId of removeSimilarProductIds) {
-      const oldSimilarProduct = await ProductModel.findById(productId);
-      if (oldSimilarProduct) {
-        product.similarProducts = product.similarProducts.filter(id => !id.equals(productId));
-        oldSimilarProduct.similarProducts = oldSimilarProduct.similarProducts.filter(id => !id.equals(product._id));
-        await oldSimilarProduct?.save({ session });
-      }
-    }
+    const addSimilarProductIds: Array<Promise<void>> = newSimilarProductList
+      .filter(newProductId => {
+        return !product.similarProducts.some(oldProductId => oldProductId.equals(newProductId));
+      })
+      .map(async (productId) => {
+        if (product._id.equals(productId)) {
+          throw new Error(`Cannot add product itself as a similar product`);
+        }
+        const newSimilarProduct = await ProductModel.findById(productId);
+        if (!newSimilarProduct) {
+          throw new Error(`Product with id ${productId} from similar product array not found`);
+        }
+        product.similarProducts.push(productId);
+        newSimilarProduct.similarProducts.push(product._id);
+        await newSimilarProduct.save({ session });
+      });
 
-    for (let productId of addSimilarProductIds) {
-      if (product._id.equals(productId)) {
-        throw new Error(`Cannot add product itself as a similar product`);
-      }
-      const newSimilarProduct = await ProductModel.findById(productId);
-      if (!newSimilarProduct) {
-        throw new Error(`Product with id ${productId} from similar product array not found`);
-      }
-      product.similarProducts.push(productId);
-      newSimilarProduct.similarProducts.push(product._id);
-      await newSimilarProduct.save({ session });
-    }
+    await Promise.all(
+      addSimilarProductIds
+    );
 
     await product.save({ session });
     await session.commitTransaction();

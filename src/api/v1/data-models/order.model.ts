@@ -36,7 +36,20 @@ const orderSchema = new mongoose.Schema<OrderInterface>({
     ],
     default: OrderStatus.PENDING
   },
-  trackingResource: String,
+  trackingResource: {
+    trackingId: {
+      type: String,
+      required: function(this: OrderInterface) {
+        return this.trackingResource && this.trackingResource.trackingId;
+      }
+    },
+    trackingUrl: {
+      type: String,
+      required: function(this: OrderInterface) {
+        return this.trackingResource && this.trackingResource.trackingUrl;
+      }
+    }
+  },
   purchaseAmount: {
     type: Number,
     required: true

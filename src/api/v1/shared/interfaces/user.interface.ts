@@ -4,7 +4,7 @@ import {
 import {
   AddressInterface,
   BaseModelInterface
-} from '.';
+} from './';
 
 export interface UserInterface extends BaseModelInterface {
   email: string,
