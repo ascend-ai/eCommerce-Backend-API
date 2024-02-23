@@ -49,31 +49,33 @@ export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Res
 
       let purchaseAmount: number = 0;
 
-      for (let [key, value] of Object.entries(orderData.purchases)) {
-        const productId = new Types.ObjectId(key);
-        const productOrderQty = value;
+      await Promise.all(
+        Object.entries(orderData.purchases).map(async ([ key, value ]) => {
+          const productId = new Types.ObjectId(key);
+          const productOrderQty = value;
 
-        if (!(!Number.isNaN(productOrderQty) &&
-            productOrderQty >= MIN_ORDERABLE_PRODUCT_QTY)) {
-          throw new Error(`Invalid order quantity for product with id ${productId}.`);
-        }
+          if (!(!Number.isNaN(productOrderQty) &&
+              productOrderQty >= MIN_ORDERABLE_PRODUCT_QTY)) {
+            throw new Error(`Invalid order quantity for product with id ${productId}.`);
+          }
 
-        const product = await ProductModel.findById(productId);
+          const product = await ProductModel.findById(productId);
 
-        if (!product) {
-          throw new Error(`Product with id ${productId} not found.`);
-        }
+          if (!product) {
+            throw new Error(`Product with id ${productId} not found.`);
+          }
 
-        if (productOrderQty > product.quantityInStock) {
-          throw new Error(`Insufficient quantity of product with id ${productId} in stock.`);
-        }
+          if (productOrderQty > product.quantityInStock) {
+            throw new Error(`Insufficient quantity of product with id ${productId} in stock.`);
+          }
 
-        product.totalPurchases += productOrderQty;
+          product.totalPurchases += productOrderQty;
 
-        purchaseAmount += (productOrderQty * product.sellingPrice);
+          purchaseAmount += (productOrderQty * product.sellingPrice);
 
-        await product.save({ session });
-      };
+          await product.save({ session });
+        })
+      );
 
       const isShippingChargeApplicable: boolean =  !orderData.isSelfPickup && (purchaseAmount < NO_SHIPPING_CHARGE_THRESHOLD);
       const shippingCharge: number = isShippingChargeApplicable ? SHIPPING_CHARGE : 0;
@@ -136,21 +138,22 @@ export const getAllOrders = async (req: GetUserAuthInfoRequestInterface, res: Re
       filterQuery['$and'] = $andFilterQueryList;
     }
 
-    const totalElements = await OrderModel.countDocuments(filterQuery);
+    const [ totalElements, orders ] = await Promise.all([
+      OrderModel.countDocuments(filterQuery),
+      OrderModel
+        .find(filterQuery)
+        .skip(page * size)
+        .limit(size)
+        .sort({
+          [sortColumn]: sortDirection
+        })
+        .populate('user')
+    ]);
 
     let totalPages = Math.floor(totalElements / size);
     if ((totalElements % size) > 0) {
       totalPages += 1;
     }
-
-    const orders = await OrderModel
-      .find(filterQuery)
-      .skip(page * size)
-      .limit(size)
-      .sort({
-        [sortColumn]: sortDirection
-      })
-      .populate('user');
 
     const pagination = new Pagination(
       orders,
@@ -213,23 +216,24 @@ export const getOrdersSpecificToUser = async (req: GetUserAuthInfoRequestInterfa
       if ($andFilterQueryList.length > 0) {
         filterQuery['$and'] = $andFilterQueryList;
       }
-  
-      const totalElements = await OrderModel.countDocuments(filterQuery);
-  
+
+      const [ totalElements, orders ] = await Promise.all([
+        OrderModel.countDocuments(filterQuery),
+        OrderModel
+          .find(filterQuery)
+          .skip(page * size)
+          .limit(size)
+          .sort({
+            [sortColumn]: sortDirection
+          })
+          .populate('user')
+      ]);
+
       let totalPages = Math.floor(totalElements / size);
       if ((totalElements % size) > 0) {
         totalPages += 1;
       }
-  
-      const orders = await OrderModel
-        .find(filterQuery)
-        .skip(page * size)
-        .limit(size)
-        .sort({
-          [sortColumn]: sortDirection
-        })
-        .populate('user');
-  
+
       const pagination = new Pagination(
         orders,
         totalElements,
@@ -239,7 +243,7 @@ export const getOrdersSpecificToUser = async (req: GetUserAuthInfoRequestInterfa
         sortColumn,
         sortDirection
       );
-  
+
       return next(new CustomSuccess(pagination, 200));
     } else {
       return next(new CustomError(`Unauthorized access`, 401))
@@ -333,18 +337,21 @@ export const verifyOrderPayment = async (req: GetUserAuthInfoRequestInterface, r
 
     if (isAuthentic) {
 
-      // * Capturing payment manually
       const razorpay = new Razorpay(razorpayConfig);
       const razorpayOrder = await razorpay.orders.fetch(razorpay_order_id);
-      await razorpay.payments.capture(
-        razorpay_payment_id,
-        razorpayOrder.amount,
-        razorpayOrder.currency
-      );
 
-      const order: OrderDocument = <OrderDocument>(await OrderModel.findOne({
-        razorpayOrderId: razorpay_order_id
-      }));
+      const [ order ] = await Promise.all([
+        <Promise<OrderDocument>>OrderModel.findOne({
+          razorpayOrderId: razorpay_order_id
+        }),
+
+        // * Capturing payment manually
+        razorpay.payments.capture(
+          razorpay_payment_id,
+          razorpayOrder.amount,
+          razorpayOrder.currency
+        ),
+      ]);
 
       order.status = OrderStatus.PLACED;
       order.razorpayPaymentId = razorpay_payment_id;
