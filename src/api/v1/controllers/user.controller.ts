@@ -184,28 +184,28 @@ export const updateModerators = async (req: GetUserAuthInfoRequestInterface, res
       if (!req.body) {
         throw new Error(`Array of users not present`);
       }
-  
+
       if (!isValidArrayOfStrings(req.body)) {
         throw new Error(`Invalid array of new similar products`)
       }
-  
+
       const newModUserIds = convertStringIdsToObjectId(req.body);
-  
+
       const currentModUsers = await UserModel.find({ role: UserRole.MODERATOR });
-  
+
       const removeableModUsers: Array<UserDocument> = currentModUsers.filter(user => !newModUserIds.some(userId => userId.equals(user._id)));
-  
+
       const unchangedModUsers: Array<UserDocument> = currentModUsers.filter(user => newModUserIds.some(userId => userId.equals(user._id)));
-  
+
       const addableModUserIds: Array<Types.ObjectId> = newModUserIds.filter(userId => !currentModUsers.some(user => user._id.equals(userId)));
-  
+
       await Promise.all(removeableModUsers.map(async (user) => {
         user.role = UserRole.CUSTOMER;
         await user?.save({ session });
       }));
-  
+
       const newModUsers = [...unchangedModUsers];
-  
+
       await Promise.all(addableModUserIds.map(async (userId) => {
         if (req.loggedInUser?._id.equals(userId)) {
           throw new Error(`Cannot add admin as moderator`);
@@ -218,7 +218,7 @@ export const updateModerators = async (req: GetUserAuthInfoRequestInterface, res
         await user.save({ session });
         newModUsers.push(user)
       }));
-  
+
       return next(new CustomSuccess(newModUsers, 200));
     });
   } catch (error: any) {
