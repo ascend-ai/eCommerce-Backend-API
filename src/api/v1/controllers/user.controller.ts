@@ -133,20 +133,21 @@ export const getUsers = async (req: GetUserAuthInfoRequestInterface, res: Respon
       filterQuery['$and'] = $andFilterQueryList;
     }
 
-    const totalElements = await UserModel.countDocuments(filterQuery);
+    const [ totalElements, orders ] = await Promise.all([
+      UserModel.countDocuments(filterQuery),
+      UserModel
+        .find(filterQuery)
+        .skip(page * size)
+        .limit(size)
+        .sort({
+          [sortColumn]: sortDirection
+        })
+    ]);
 
     let totalPages = Math.floor(totalElements / size);
     if ((totalElements % size) > 0) {
       totalPages += 1;
     }
-
-    const orders = await UserModel
-      .find(filterQuery)
-      .skip(page * size)
-      .limit(size)
-      .sort({
-        [sortColumn]: sortDirection
-      });
 
     const pagination = new Pagination(
       orders,
@@ -178,59 +179,51 @@ export const getModeratorList = async (req: GetUserAuthInfoRequestInterface, res
 
 export const updateModerators = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
   const session: ClientSession = await mongoose.startSession();
-  session.startTransaction();
   try {
-
-    if (!req.body) {
-      throw new Error(`Array of users not present`);
-    }
-
-    if (!isValidArrayOfStrings(req.body)) {
-      throw new Error(`Invalid array of new similar products`)
-    }
-
-    const newModUserIds = convertStringIdsToObjectId(req.body);
-
-    const currentModUsers = await UserModel.find({ role: UserRole.MODERATOR });
-
-    const removeableModUsers = currentModUsers.filter(user => {
-      return !newModUserIds.some(userId => userId.equals(user._id));
-    });
-
-    const addableModUserIds = newModUserIds.filter(userId => {
-      return !currentModUsers.some(user => user._id.equals(userId));
-    });
-
-    const unchangedModUsers = currentModUsers.filter(user => {
-      return newModUserIds.some(userId => userId.equals(user._id));
-    });
-
-    for (let user of removeableModUsers) {
-      user.role = UserRole.CUSTOMER;
-      await user?.save({ session });
-    }
-
-    const newModUsers = [...unchangedModUsers];
-
-    for (let userId of addableModUserIds) {
-      if (req.loggedInUser?._id.equals(userId)) {
-        throw new Error(`Cannot add admin as moderator`);
+    await session.withTransaction(async () => {
+      if (!req.body) {
+        throw new Error(`Array of users not present`);
       }
-      const user = await UserModel.findById(userId);
-      if (!user) {
-        throw new Error(`User with id ${userId} not found`);
+  
+      if (!isValidArrayOfStrings(req.body)) {
+        throw new Error(`Invalid array of new similar products`)
       }
-      user.role = UserRole.MODERATOR;
-      await user.save({ session });
-      newModUsers.push(user)
-    }
-
-    await session.commitTransaction();
-    await session.endSession();
-    return next(new CustomSuccess(newModUsers, 200));
+  
+      const newModUserIds = convertStringIdsToObjectId(req.body);
+  
+      const currentModUsers = await UserModel.find({ role: UserRole.MODERATOR });
+  
+      const removeableModUsers: Array<UserDocument> = currentModUsers.filter(user => !newModUserIds.some(userId => userId.equals(user._id)));
+  
+      const unchangedModUsers: Array<UserDocument> = currentModUsers.filter(user => newModUserIds.some(userId => userId.equals(user._id)));
+  
+      const addableModUserIds: Array<Types.ObjectId> = newModUserIds.filter(userId => !currentModUsers.some(user => user._id.equals(userId)));
+  
+      await Promise.all(removeableModUsers.map(async (user) => {
+        user.role = UserRole.CUSTOMER;
+        await user?.save({ session });
+      }));
+  
+      const newModUsers = [...unchangedModUsers];
+  
+      await Promise.all(addableModUserIds.map(async (userId) => {
+        if (req.loggedInUser?._id.equals(userId)) {
+          throw new Error(`Cannot add admin as moderator`);
+        }
+        const user = await UserModel.findById(userId);
+        if (!user) {
+          throw new Error(`User with id ${userId} not found`);
+        }
+        user.role = UserRole.MODERATOR;
+        await user.save({ session });
+        newModUsers.push(user)
+      }));
+  
+      return next(new CustomSuccess(newModUsers, 200));
+    });
   } catch (error: any) {
-    await session.abortTransaction();
-    await session.endSession();
     return next(new CustomError(error.message, 500));
+  } finally {
+    await session.endSession();
   }
 };

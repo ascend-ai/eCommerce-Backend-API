@@ -2,9 +2,15 @@ import crypto from 'crypto';
 import {
   Types
 } from 'mongoose';
-import { SORT_STRING_REGEX } from '../constants';
-import { SortInfo } from '../interfaces';
-import { SortDirection } from '../enums';
+import {
+  SORT_STRING_REGEX
+} from '../constants';
+import {
+  SortInfo
+} from '../interfaces';
+import {
+  SortDirection
+} from '../enums';
 
 export const isValidJsonString = (str: string): boolean => {
   try {
