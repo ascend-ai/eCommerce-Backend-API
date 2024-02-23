@@ -43,70 +43,66 @@ import {
 
 export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
   const session: ClientSession = await mongoose.startSession();
-  session.startTransaction();
   try {
+    await session.withTransaction(async () => {
+      const orderData = new CreateOrderDto(req.body);
 
-    const orderData = new CreateOrderDto(req.body);
+      let purchaseAmount: number = 0;
 
-    let purchaseAmount: number = 0;
+      for (let [key, value] of Object.entries(orderData.purchases)) {
+        const productId = new Types.ObjectId(key);
+        const productOrderQty = value;
 
-    for (let [key, value] of Object.entries(orderData.purchases)) {
-      const productId = new Types.ObjectId(key);
-      const productOrderQty = value;
+        if (!(!Number.isNaN(productOrderQty) &&
+            productOrderQty >= MIN_ORDERABLE_PRODUCT_QTY)) {
+          throw new Error(`Invalid order quantity for product with id ${productId}.`);
+        }
 
-      if (!(!Number.isNaN(productOrderQty) &&
-          productOrderQty >= MIN_ORDERABLE_PRODUCT_QTY)) {
-        throw new Error(`Invalid order quantity for product with id ${productId}.`);
-      }
+        const product = await ProductModel.findById(productId);
 
-      const product = await ProductModel.findById(productId);
+        if (!product) {
+          throw new Error(`Product with id ${productId} not found.`);
+        }
 
-      if (!product) {
-        throw new Error(`Product with id ${productId} not found.`);
-      }
+        if (productOrderQty > product.quantityInStock) {
+          throw new Error(`Insufficient quantity of product with id ${productId} in stock.`);
+        }
 
-      if (productOrderQty > product.quantityInStock) {
-        throw new Error(`Insufficient quantity of product with id ${productId} in stock.`);
-      }
+        product.totalPurchases += productOrderQty;
 
-      product.totalPurchases += productOrderQty;
+        purchaseAmount += (productOrderQty * product.sellingPrice);
 
-      purchaseAmount += (productOrderQty * product.sellingPrice);
+        await product.save({ session });
+      };
 
-      await product.save({ session });
-    };
+      const isShippingChargeApplicable: boolean =  !orderData.isSelfPickup && (purchaseAmount < NO_SHIPPING_CHARGE_THRESHOLD);
+      const shippingCharge: number = isShippingChargeApplicable ? SHIPPING_CHARGE : 0;
 
-    const isShippingChargeApplicable: boolean =  !orderData.isSelfPickup && (purchaseAmount < NO_SHIPPING_CHARGE_THRESHOLD);
-    const shippingCharge: number = isShippingChargeApplicable ? SHIPPING_CHARGE : 0;
-    
-    const razorpay = new Razorpay(razorpayConfig);
-    const razorpayAmount = (purchaseAmount + shippingCharge) * INR_SUBUNIT;
-    const razorpayOrder = await razorpay.orders.create({
-      amount: razorpayAmount,
-      currency: ACCEPTED_CURRENCY,
-      payment_capture: false
+      const razorpay = new Razorpay(razorpayConfig);
+      const razorpayAmount = (purchaseAmount + shippingCharge) * INR_SUBUNIT;
+      const razorpayOrder = await razorpay.orders.create({
+        amount: razorpayAmount,
+        currency: ACCEPTED_CURRENCY,
+        payment_capture: false
+      });
+
+      const order = new OrderModel({
+        user: req.loggedInUser?._id,
+        razorpayOrderId: razorpayOrder.id,
+        purchases: orderData.purchases,
+        isSelfPickup: orderData.isSelfPickup,
+        purchaseAmount,
+        shippingCharge
+      });
+
+      await order.save({ session });
+
+      return next(new CustomSuccess(order, 200));
     });
-
-    const order = new OrderModel({
-      user: req.loggedInUser?._id,
-      razorpayOrderId: razorpayOrder.id,
-      purchases: orderData.purchases,
-      isSelfPickup: orderData.isSelfPickup,
-      purchaseAmount,
-      shippingCharge
-    });
-
-    await order.save({ session });
-
-    await session.commitTransaction();
-    await session.endSession();
-    return next(new CustomSuccess(order, 200));
-
   } catch (error: any) {
-
-    await session.abortTransaction();
-    await session.endSession();
     return next(new CustomError(error.message, 400));
+  } finally {
+    await session.endSession();
   }
 };
 
