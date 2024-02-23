@@ -1,7 +1,9 @@
-import { Types } from 'mongoose';
+import {
+  Types
+} from 'mongoose';
 import {
   BaseModelInterface
-} from './base-model.interface';
+} from './';
 
 export interface ProductInterface extends BaseModelInterface {
   name: string;

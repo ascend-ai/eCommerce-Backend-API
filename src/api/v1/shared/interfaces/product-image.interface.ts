@@ -1,6 +1,6 @@
 import {
   BaseModelInterface
-} from './base-model.interface';
+} from './';
 
 export interface ProductImageInterface extends BaseModelInterface {
   url: string;

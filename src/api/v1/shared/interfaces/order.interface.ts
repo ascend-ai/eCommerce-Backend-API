@@ -6,15 +6,16 @@ import {
   OrderStatus
 } from '../enums';
 import {
-  BaseModelInterface
-} from './base-model.interface';
+  BaseModelInterface,
+  TrackingResourceInterface
+} from './';
 
 export interface OrderInterface extends BaseModelInterface {
   user: Types.ObjectId;
   razorpayOrderId: string;
   razorpayPaymentId?: string;
   razorpaySignature?: string;
-  trackingResource?: string;
+  trackingResource?: TrackingResourceInterface;
   purchases: Map<string, number>;
   purchaseAmount: number;
   shippingCharge: number;

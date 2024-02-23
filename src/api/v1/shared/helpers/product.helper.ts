@@ -1,16 +1,16 @@
 import sharp from 'sharp';
 import path from 'path';
 import {
-  existsSync,
-  mkdirSync,
-  writeFile
+  existsSync
 } from 'fs';
 import {
   ClientSession,
   Types
 } from 'mongoose';
 import {
-  unlink
+  mkdir,
+  unlink,
+  writeFile
 } from 'fs/promises';
 
 import {
@@ -65,7 +65,7 @@ export const uploadProductImageFile = async (imgFile: Express.Multer.File): Prom
   const imgPath = path.join(UPLOAD_DIRECTORY_PATH,  imgFile.originalname);
 
   if (!existsSync(UPLOAD_DIRECTORY_PATH)) {
-    mkdirSync(UPLOAD_DIRECTORY_PATH, { recursive: true });
+    await mkdir(UPLOAD_DIRECTORY_PATH, { recursive: true })
   }
 
   if (imgFile.size > TARGETED_IMG_SIZE) {
@@ -74,11 +74,7 @@ export const uploadProductImageFile = async (imgFile: Express.Multer.File): Prom
     imgFile = await compressImage(imgFile, TARGETED_IMG_SIZE);
   }
 
-  await writeFile(imgPath, imgFile.buffer, (err) => {
-    if (err) {
-      throw new Error('Error saving image.');
-    }
-  });
+  await writeFile(imgPath, imgFile.buffer);
 };
 
 /**
