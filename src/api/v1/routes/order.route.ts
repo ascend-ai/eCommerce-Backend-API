@@ -2,9 +2,9 @@ import express from 'express';
 
 import {
   createOrder,
+  editBasicDetailsOfOrder,
   getAllOrders,
   getOrder,
-  updateOrderStatus,
   verifyOrderPayment,
 } from '../controllers';
 import {
@@ -25,7 +25,7 @@ router.get('/:orderId', getOrder);
 // * AUTHORIZED ROUTES - ADMIN & MODERATORS
 router.use(isAuthenticateUserAdminOrMod);
 router.get('/', getAllOrders);
-router.put('/:orderId/status', updateOrderStatus);
+router.put('/:orderId/basic-details', editBasicDetailsOfOrder);
 
 
 

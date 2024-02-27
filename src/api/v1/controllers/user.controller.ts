@@ -75,8 +75,10 @@ export const editBasicDetailsOfUser = async (req: GetUserAuthInfoRequestInterfac
 
     if (isLoggedInUserSelf) {
       const basicDetails = new EditUserBasicDetailsDto(user);
-      const newBasicDetails = new EditUserBasicDetailsDto({});
-      newBasicDetails.phoneNumber = req.body?.phoneNumber || basicDetails.phoneNumber;
+      const newBasicDetails = merge<EditUserBasicDetailsDto, any>(
+        new EditUserBasicDetailsDto({}),
+        req.body
+      );
       newBasicDetails.address = merge<AddressInterface, any>(basicDetails.address, req.body?.address);
 
       user.address = newBasicDetails.address;
