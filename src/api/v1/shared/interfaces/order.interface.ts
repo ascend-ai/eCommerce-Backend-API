@@ -15,7 +15,7 @@ export interface OrderInterface extends BaseModelInterface {
   razorpayOrderId: string;
   razorpayPaymentId?: string;
   razorpaySignature?: string;
-  trackingResource?: TrackingResourceInterface;
+  trackingResource: TrackingResourceInterface;
   purchases: Map<string, number>;
   purchaseAmount: number;
   shippingCharge: number;

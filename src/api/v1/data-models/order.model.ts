@@ -40,13 +40,13 @@ const orderSchema = new mongoose.Schema<OrderInterface>({
     trackingId: {
       type: String,
       required: function(this: OrderInterface) {
-        return this.trackingResource && this.trackingResource.trackingId;
+        return !!this.trackingResource.trackingUrl;
       }
     },
     trackingUrl: {
       type: String,
       required: function(this: OrderInterface) {
-        return this.trackingResource && this.trackingResource.trackingUrl;
+        return !!this.trackingResource.trackingId;
       }
     }
   },

@@ -16,6 +16,7 @@ import {
   CustomSuccess,
   DEFAULT_SORT_COLUMN,
   DEFAULT_SORT_DIRECTION,
+  EditOrderBasicDetailsDto,
   GetUserAuthInfoRequestInterface,
   INR_SUBUNIT,
   MIN_ORDERABLE_PRODUCT_QTY,
@@ -23,14 +24,17 @@ import {
   ORDER_SORTABLE_COLUMNS,
   OrderDocument,
   OrderFilterCriteriaDto,
+  OrderInterface,
   OrderStatus,
   Pagination,
   SHIPPING_CHARGE,
   SortDirection,
+  TrackingResourceInterface,
   UserDocument,
   UserRole,
   generateHmacSha256,
   isSortStringValid,
+  merge,
   retrieveSortInfo
 } from '../shared';
 import {
@@ -285,42 +289,34 @@ export const getOrder = async (req: GetUserAuthInfoRequestInterface, res: Respon
   }
 };
 
-export const updateOrderStatus = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+export const editBasicDetailsOfOrder = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
   try {
-    const acceptableOrderStatusList: Array<OrderStatus> = [
-      OrderStatus.PLACED,
-      OrderStatus.CONFIRMED,
-      OrderStatus.SHIPPED,
-      OrderStatus.DELIVERED,
-    ];
-    const { status } = req.body;
-
-    if (!status) {
-      throw new Error('New status not present');
-    }
-
-    if (!acceptableOrderStatusList.includes(status)) {
-      throw new Error('Invalid status');
-    }
-
     let { orderId }: any = req.params;
     orderId = new Types.ObjectId(orderId);
 
-    const order = await OrderModel
-      .findById(orderId)
-      .populate('user');
-
+    let order = await OrderModel.findById(orderId);
+    
     if (!order) {
-      throw new Error(`Order with id ${orderId} not found`);
+      throw new Error(`User with id ${orderId} not found.`);
     }
 
-    order.status = status;
+    const basicDetails = new EditOrderBasicDetailsDto(order);
+    const newBasicDetails = merge<EditOrderBasicDetailsDto, any>(
+      new EditOrderBasicDetailsDto({}),
+      req.body
+    );
+    newBasicDetails.trackingResource = merge<TrackingResourceInterface, any>(
+      basicDetails.trackingResource,
+      req.body?.trackingResource
+    );
 
+    order.status = newBasicDetails.status;
+    order.trackingResource.trackingId = newBasicDetails.trackingResource?.trackingId;
+    order.trackingResource.trackingUrl = newBasicDetails.trackingResource?.trackingUrl;
     await order.save();
-
     return next(new CustomSuccess(order, 200));
   } catch (error: any) {
-    return next(new CustomError(error.message, 500));
+    return next(new CustomError(error.message, 400));
   }
 };
 
