@@ -360,8 +360,10 @@ export const editBasicDetailsOfProduct = async (req: GetUserAuthInfoRequestInter
       throw new Error(`Product with id ${productId} not found.`);
     }
 
-    const basicDetails = new EditProductBasicDetailsDto(product);
-    const newBasicDetails = merge<EditProductBasicDetailsDto, any>(basicDetails, req.body);
+    const newBasicDetails = merge<EditProductBasicDetailsDto, any>(
+      new EditProductBasicDetailsDto(product),
+      new EditProductBasicDetailsDto(req.body)
+    );
 
     product.name = newBasicDetails.name;
     product.description = newBasicDetails.description;

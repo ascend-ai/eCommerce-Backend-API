@@ -300,14 +300,9 @@ export const editBasicDetailsOfOrder = async (req: GetUserAuthInfoRequestInterfa
       throw new Error(`User with id ${orderId} not found.`);
     }
 
-    const basicDetails = new EditOrderBasicDetailsDto(order);
     const newBasicDetails = merge<EditOrderBasicDetailsDto, any>(
-      new EditOrderBasicDetailsDto({}),
-      req.body
-    );
-    newBasicDetails.trackingResource = merge<TrackingResourceInterface, any>(
-      basicDetails.trackingResource,
-      req.body?.trackingResource
+      new EditOrderBasicDetailsDto(order),
+      new EditOrderBasicDetailsDto(req.body)
     );
 
     order.status = newBasicDetails.status;

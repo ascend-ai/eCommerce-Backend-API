@@ -27,26 +27,26 @@ const orderSchema = new mongoose.Schema<OrderInterface>({
   },
   status: {
     type: String,
-    enum: [
-      OrderStatus.PENDING,
-      OrderStatus.PLACED,
-      OrderStatus.CONFIRMED,
-      OrderStatus.SHIPPED,
-      OrderStatus.DELIVERED,
-    ],
+    enum: Object.values(OrderStatus).filter(value => typeof value === 'string'),
     default: OrderStatus.PENDING
   },
   trackingResource: {
     trackingId: {
       type: String,
-      required: function(this: OrderInterface) {
-        return !!this.trackingResource.trackingUrl;
-      }
+      default: '',
+      validate: function(this: OrderInterface) {
+        const haveTrackingId: boolean = !!this.trackingResource.trackingId.trim().length;
+        const haveTrackingUrl: boolean = !!this.trackingResource.trackingUrl.trim().length;
+        return (haveTrackingId && haveTrackingUrl) || (!haveTrackingId && !haveTrackingUrl);
+      },
     },
     trackingUrl: {
       type: String,
-      required: function(this: OrderInterface) {
-        return !!this.trackingResource.trackingId;
+      default: '',
+      validate: function(this: OrderInterface) {
+        const haveTrackingId: boolean = !!this.trackingResource.trackingId.trim().length;
+        const haveTrackingUrl: boolean = !!this.trackingResource.trackingUrl.trim().length;
+        return (haveTrackingId && haveTrackingUrl) || (!haveTrackingId && !haveTrackingUrl);
       }
     }
   },
