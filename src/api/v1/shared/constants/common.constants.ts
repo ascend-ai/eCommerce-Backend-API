@@ -1,7 +1,9 @@
 import { 
   SortDirection
 } from '../enums';
-import { BaseModelInterface } from '../interfaces';
+import {
+  BaseModelInterface
+} from '../interfaces';
 
 export const SORT_STRING_REGEX = /^[a-zA-Z]+,(asc|desc)$/;
 

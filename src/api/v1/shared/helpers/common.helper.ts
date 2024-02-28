@@ -32,8 +32,17 @@ export const convertStringIdsToObjectId = (arrOfStr: Array<string>): Array<Types
 
 export function merge<T1 extends Object, T2 extends T1>(target: T1, source: T2): T1 {
   for (let key in target) {
-    if (target.hasOwnProperty(key) && source.hasOwnProperty(key)) {
-      target[key] = source[key];
+    if (target.hasOwnProperty(key) &&
+        source.hasOwnProperty(key) &&
+        typeof target[key] === typeof source[key]) {
+
+      if (typeof source[key] === 'object' &&
+          source[key] !== null &&
+          !Array.isArray(source[key])) {
+        target[key] = merge<any, any>(target[key], source[key]);
+      } else {
+        target[key] = source[key];
+      }
     }
   }
   return target;

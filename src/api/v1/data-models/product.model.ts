@@ -80,15 +80,7 @@ const productSchema = new mongoose.Schema<ProductInterface>({
   },
   category: {
     type: String,
-    enum: [
-      Categories.ANKLET,
-      Categories.BODY_JEWELLERY,
-      Categories.BRACELET,
-      Categories.EARRING,
-      Categories.NECKLACE,
-      Categories.OTHERS,
-      Categories.PHONE_STRAP,
-    ],
+    enum: Object.values(Categories).filter(value => typeof value === 'string'),
     default: Categories.OTHERS
   },
   similarProducts: [

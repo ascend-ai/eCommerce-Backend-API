@@ -49,11 +49,7 @@ const userSchema = new mongoose.Schema<UserInterface>({
   },
   role: {
     type: String,
-    enum: [
-      UserRole.ADMIN,
-      UserRole.MODERATOR,
-      UserRole.CUSTOMER
-    ],
+    enum: Object.values(UserRole).filter(value => typeof value === 'string'),
     default: UserRole.CUSTOMER
   },
   phoneNumber: {
