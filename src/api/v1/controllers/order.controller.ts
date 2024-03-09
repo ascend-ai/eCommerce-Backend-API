@@ -24,12 +24,10 @@ import {
   ORDER_SORTABLE_COLUMNS,
   OrderDocument,
   OrderFilterCriteriaDto,
-  OrderInterface,
   OrderStatus,
   Pagination,
   SHIPPING_CHARGE,
   SortDirection,
-  TrackingResourceInterface,
   UserDocument,
   UserRole,
   generateHmacSha256,
@@ -294,7 +292,9 @@ export const editBasicDetailsOfOrder = async (req: GetUserAuthInfoRequestInterfa
     let { orderId }: any = req.params;
     orderId = new Types.ObjectId(orderId);
 
-    let order = await OrderModel.findById(orderId);
+    let order = await OrderModel
+      .findById(orderId)
+      .populate('user');
     
     if (!order) {
       throw new Error(`User with id ${orderId} not found.`);
@@ -302,7 +302,7 @@ export const editBasicDetailsOfOrder = async (req: GetUserAuthInfoRequestInterfa
 
     const newBasicDetails = merge<EditOrderBasicDetailsDto, any>(
       new EditOrderBasicDetailsDto(order),
-      new EditOrderBasicDetailsDto(req.body)
+      req.body
     );
 
     order.status = newBasicDetails.status;

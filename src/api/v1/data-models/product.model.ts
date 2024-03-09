@@ -93,6 +93,36 @@ const productSchema = new mongoose.Schema<ProductInterface>({
     type: Number,
     default: 0
   },
+  customizationTextRange: {
+    min: {
+      type: Number,
+      default: 0,
+      validate: function(this: ProductInterface) {
+        const bothMinAndMaxNotAvailable: boolean = !this.customizationTextRange.min &&
+                                                   !this.customizationTextRange.max;
+        const bothValidMinAndMaxAvailable: boolean = !!this.customizationTextRange.min &&
+                                                     !!this.customizationTextRange.max &&
+                                                     this.customizationTextRange.min > 0 &&
+                                                     this.customizationTextRange.min <= this.customizationTextRange.max;
+
+        return (bothMinAndMaxNotAvailable) || (bothValidMinAndMaxAvailable);
+      },
+    },
+    max: {
+      type: Number,
+      default: 0,
+      validate: function(this: ProductInterface) {
+        const bothMinAndMaxNotAvailable: boolean = !this.customizationTextRange.min &&
+                                                   !this.customizationTextRange.max;
+        const bothValidMinAndMaxAvailable: boolean = !!this.customizationTextRange.min &&
+                                                     !!this.customizationTextRange.max &&
+                                                     this.customizationTextRange.min > 0 &&
+                                                     this.customizationTextRange.min <= this.customizationTextRange.max;
+
+        return (bothMinAndMaxNotAvailable) || (bothValidMinAndMaxAvailable);
+      }
+    }
+  },
   whenCreated: {
     type: Number,
     default: Date.now
