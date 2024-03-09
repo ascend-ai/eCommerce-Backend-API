@@ -76,7 +76,7 @@ export const editBasicDetailsOfUser = async (req: GetUserAuthInfoRequestInterfac
     if (isLoggedInUserSelf) {
       const newBasicDetails = merge<EditUserBasicDetailsDto, any>(
         new EditUserBasicDetailsDto(user),
-        new EditUserBasicDetailsDto(req.body)
+        req.body
       );
 
       user.address = newBasicDetails.address;

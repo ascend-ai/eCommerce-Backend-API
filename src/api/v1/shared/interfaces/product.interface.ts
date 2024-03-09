@@ -2,7 +2,7 @@ import {
   Types
 } from 'mongoose';
 import {
-  BaseModelInterface
+  BaseModelInterface, CustomizationTextRangeInterface
 } from './';
 
 export interface ProductInterface extends BaseModelInterface {
@@ -14,6 +14,7 @@ export interface ProductInterface extends BaseModelInterface {
   quantityInStock: number;
   images: Array<Types.ObjectId>;
   similarProducts: Array<Types.ObjectId>;
-  category?: string;
+  category: string;
+  customizationTextRange: CustomizationTextRangeInterface;
   totalPurchases: number;
 };

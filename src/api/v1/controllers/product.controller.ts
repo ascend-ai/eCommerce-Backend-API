@@ -2,7 +2,11 @@ import {
   NextFunction,
   Response
 } from 'express';
-import mongoose, { ClientSession, FilterQuery, Types } from 'mongoose';
+import mongoose, {
+  ClientSession,
+  FilterQuery,
+  Types
+} from 'mongoose';
 
 import {
   CreateProductDto,
@@ -50,6 +54,7 @@ export const createProduct = async (req: GetUserAuthInfoRequestInterface, res: R
         isPinned: productData.isPinned,
         maxRetailPrice: productData.maxRetailPrice,
         sellingPrice: productData.sellingPrice,
+        customizationTextRange: productData.customizationTextRange
       });
 
       if (!Array.isArray(productImgFiles) ||
@@ -362,7 +367,7 @@ export const editBasicDetailsOfProduct = async (req: GetUserAuthInfoRequestInter
 
     const newBasicDetails = merge<EditProductBasicDetailsDto, any>(
       new EditProductBasicDetailsDto(product),
-      new EditProductBasicDetailsDto(req.body)
+      req.body
     );
 
     product.name = newBasicDetails.name;
@@ -370,6 +375,8 @@ export const editBasicDetailsOfProduct = async (req: GetUserAuthInfoRequestInter
     product.quantityInStock = newBasicDetails.quantityInStock;
     product.category = newBasicDetails.category;
     product.isPinned = newBasicDetails.isPinned;
+    product.customizationTextRange.min = newBasicDetails.customizationTextRange?.min;
+    product.customizationTextRange.max = newBasicDetails.customizationTextRange?.max;
     product.maxRetailPrice = newBasicDetails.maxRetailPrice;
     product.sellingPrice = newBasicDetails.sellingPrice;
 
