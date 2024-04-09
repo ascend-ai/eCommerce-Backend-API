@@ -3,7 +3,7 @@ import {
   Types
 } from 'mongoose';
 import {
-  SORT_STRING_REGEX
+  SORT_STRING_FORMAT
 } from '../constants';
 import {
   SortInfo
@@ -76,7 +76,7 @@ export const doesArraysHaveSimilarElements = (arr1: Array<any>, arr2: Array<any>
 };
 
 export const isSortStringValid = (sortString: string, sortableColumns: readonly string[]): boolean => {
-  if(SORT_STRING_REGEX.test(sortString)) {
+  if(SORT_STRING_FORMAT.test(sortString)) {
     const sortableColumn = sortString.split(',')[0];
     return sortableColumns.includes(sortableColumn);
   } else {

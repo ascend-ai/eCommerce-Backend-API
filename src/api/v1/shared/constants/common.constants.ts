@@ -5,7 +5,7 @@ import {
   BaseModelInterface
 } from '../interfaces';
 
-export const SORT_STRING_REGEX = /^[a-zA-Z]+,(asc|desc)$/;
+export const SORT_STRING_FORMAT = /^[a-zA-Z]+,(asc|desc)$/;
 
 export const BASE_SORTABLE_COLUMNS: readonly (keyof BaseModelInterface)[] = [
   'whenCreated',

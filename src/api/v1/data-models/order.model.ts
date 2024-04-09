@@ -1,9 +1,10 @@
 import mongoose, {
   CallbackWithoutResultAndOptionalError,
-  Schema
+  Schema,
 } from 'mongoose';
 
 import {
+  MIN_ORDERABLE_PRODUCT_QTY,
   OrderInterface,
   OrderStatus
 } from '../shared';
@@ -20,11 +21,23 @@ const orderSchema = new mongoose.Schema<OrderInterface>({
   },
   razorpayPaymentId: String,
   razorpaySignature: String,
-  purchases: {
-    type: Map,
-    of: Number,
-    required: true,
-  },
+  purchases: [
+    {
+      productId: {
+        type: Schema.Types.ObjectId,
+        required: true
+      },
+      productOrderQty: {
+        type: Number,
+        required: true,
+        min: MIN_ORDERABLE_PRODUCT_QTY
+      },
+      productCustomizationText: {
+        type: String,
+        default: ''
+      }
+    }
+  ],
   status: {
     type: String,
     enum: Object.values(OrderStatus).filter(value => typeof value === 'string'),
