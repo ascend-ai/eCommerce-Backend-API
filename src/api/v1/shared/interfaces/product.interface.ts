@@ -2,7 +2,8 @@ import {
   Types
 } from 'mongoose';
 import {
-  BaseModelInterface, CustomizationTextRangeInterface
+  BaseModelInterface,
+  CustomizationTextRangeInterface
 } from './';
 
 export interface ProductInterface extends BaseModelInterface {

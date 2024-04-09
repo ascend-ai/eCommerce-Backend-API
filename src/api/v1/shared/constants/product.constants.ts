@@ -16,7 +16,9 @@ export const MAX_IMAGES_PER_PRODUCT = 3;
 
 export const MIN_IMAGES_PER_PRODUCT = 1;
 
-export const PRODUCT_CATEGORY_NAME_REGEX = /^(?!_)(?!.*__)(?!.*_$)[a-z_]+$/;
+export const PRODUCT_CATEGORY_NAME_FORMAT = /^(?!_)(?!.*__)(?!.*_$)[a-z_]+$/;
+
+export const PRODUCT_CUSTOMIZATION_TEXT_FORMAT = /^[A-Z0-9]+$/;
 
 export const DEFAULT_PAGINATION_PAGE = 0;
 

@@ -7,7 +7,8 @@ import {
 } from '../enums';
 import {
   BaseModelInterface,
-  TrackingResourceInterface
+  TrackingResourceInterface,
+  PurchaseInterface
 } from './';
 
 export interface OrderInterface extends BaseModelInterface {
@@ -16,7 +17,7 @@ export interface OrderInterface extends BaseModelInterface {
   razorpayPaymentId?: string;
   razorpaySignature?: string;
   trackingResource: TrackingResourceInterface;
-  purchases: Map<string, number>;
+  purchases: Array<PurchaseInterface>;
   purchaseAmount: number;
   shippingCharge: number;
   totalAmount: number;

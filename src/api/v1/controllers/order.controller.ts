@@ -19,12 +19,12 @@ import {
   EditOrderBasicDetailsDto,
   GetUserAuthInfoRequestInterface,
   INR_SUBUNIT,
-  MIN_ORDERABLE_PRODUCT_QTY,
   NO_SHIPPING_CHARGE_THRESHOLD,
   ORDER_SORTABLE_COLUMNS,
   OrderDocument,
   OrderFilterCriteriaDto,
   OrderStatus,
+  PRODUCT_CUSTOMIZATION_TEXT_FORMAT,
   Pagination,
   SHIPPING_CHARGE,
   SortDirection,
@@ -52,14 +52,13 @@ export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Res
       let purchaseAmount: number = 0;
 
       await Promise.all(
-        Object.entries(orderData.purchases).map(async ([ key, value ]) => {
-          const productId = new Types.ObjectId(key);
-          const productOrderQty = value;
-
-          if (!(!Number.isNaN(productOrderQty) &&
-              productOrderQty >= MIN_ORDERABLE_PRODUCT_QTY)) {
-            throw new Error(`Invalid order quantity for product with id ${productId}.`);
-          }
+        orderData.purchases.map(async (purchase) => {
+          let {
+            productId,
+            productOrderQty,
+            productCustomizationText
+          } = purchase;
+          productId = new Types.ObjectId(productId);
 
           const product = await ProductModel.findById(productId);
 
@@ -69,6 +68,17 @@ export const createOrder = async (req: GetUserAuthInfoRequestInterface, res: Res
 
           if (productOrderQty > product.quantityInStock) {
             throw new Error(`Insufficient quantity of product with id ${productId} in stock.`);
+          }
+
+          if (productCustomizationText.length < product.customizationTextRange.min ||
+              productCustomizationText.length > product.customizationTextRange.max) {
+            throw new Error(`Customization text of product with id ${productId} is invalid`);
+          }
+
+          if (!!product.customizationTextRange.min &&
+              !!product.customizationTextRange.max &&
+              !PRODUCT_CUSTOMIZATION_TEXT_FORMAT.test(productCustomizationText)) {
+            throw new Error(`Customization text of product with id ${productId} is invalid`);
           }
 
           product.totalPurchases += productOrderQty;
