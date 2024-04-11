@@ -12,3 +12,4 @@ export * from './order.interface';
 export * from './base-filter-criteria.interface';
 export * from './customization-text-range.interface';
 export * from './purchase.interface';
+export * from './stall-schedule.interface';

@@ -21,7 +21,8 @@ import {
   authRoutes,
   productRoutes,
   orderRoutes,
-  userRoutes
+  userRoutes,
+  stallScheduleRoutes
 } from './api/v1/routes';
 
 dotenv.config();
@@ -41,6 +42,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/stall-schedules', stallScheduleRoutes);
 app.all('*', (req: Request, res: Response, next: NextFunction) => {
   next(new CustomError(`404 - Not Found`, 404))
 });

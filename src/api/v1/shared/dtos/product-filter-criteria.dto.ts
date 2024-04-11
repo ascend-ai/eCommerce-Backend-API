@@ -10,7 +10,7 @@ import {
 } from '../interfaces';
 import {
   BaseFilterCriteriaDto
-} from './base-filter-criteria.dto';
+} from './';
 
 export class ProductFilterCriteriaDto extends BaseFilterCriteriaDto implements Partial<ProductInterface> {
   category: Categories | undefined;
