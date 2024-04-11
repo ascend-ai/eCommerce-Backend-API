@@ -3,24 +3,21 @@ import {
   DEFAULT_PAGINATION_SIZE
 } from '../constants';
 import {
-  OrderStatus
-} from '../enums';
-import {
-  OrderInterface
+  StallScheduleInterface
 } from '../interfaces';
 import {
   BaseFilterCriteriaDto
 } from './';
 
-export class OrderFilterCriteriaDto extends BaseFilterCriteriaDto implements Partial<OrderInterface> {
-  status: OrderStatus | undefined;
+export class StallScheduleFilterCriteriaDto extends BaseFilterCriteriaDto implements Partial<StallScheduleInterface> {
+  date: number | undefined;
 
   constructor(queryParams: Record<string, any> = {
     page: DEFAULT_PAGINATION_PAGE,
     size: DEFAULT_PAGINATION_SIZE,
-    status: undefined,
+    date: undefined,
   }) {
     super(queryParams);
-    this.status = queryParams?.status || undefined;
+    this.date = queryParams?.date || undefined;
   }
 }

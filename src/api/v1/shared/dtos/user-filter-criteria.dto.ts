@@ -10,7 +10,7 @@ import {
 } from '../interfaces';
 import {
   BaseFilterCriteriaDto
-} from './base-filter-criteria.dto';
+} from './';
 
 export class UserFilterCriteriaDto extends BaseFilterCriteriaDto implements Partial<UserInterface> {
   role: UserRole | undefined;

@@ -1,4 +1,4 @@
 export interface BaseModelInterface {
-  whenCreated: Number;
-  whenLastUpdated: Number;
+  whenCreated: number;
+  whenLastUpdated: number;
 }
