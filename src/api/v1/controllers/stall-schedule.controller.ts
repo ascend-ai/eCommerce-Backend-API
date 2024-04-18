@@ -5,11 +5,13 @@ import {
   CustomSuccess,
   DEFAULT_SORT_COLUMN,
   DEFAULT_SORT_DIRECTION,
+  EditStallScheduleBasicDetailsDto,
   GetUserAuthInfoRequestInterface,
   Pagination,
   STALL_SCHEDULE_SORTABLE_COLUMNS,
   SortDirection,
   isSortStringValid,
+  merge,
   retrieveSortInfo,
 } from '../shared';
 import {
@@ -19,6 +21,7 @@ import {
 import {
   StallScheduleModel
 } from '../data-models';
+import { Types } from 'mongoose';
 
 export const createStallSchedule = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
   try {
@@ -82,9 +85,65 @@ export const getAllStallSchedules = async (req: GetUserAuthInfoRequestInterface,
   }
 };
 
+export const getStallSchedule = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  try {
+    let { stallScheduleId }: any = req.params;
+    stallScheduleId = new Types.ObjectId(stallScheduleId);
+
+    const stallSchedule = await StallScheduleModel
+      .findById(stallScheduleId);
+
+    if (!stallSchedule) {
+      throw new Error(`Stall schedule with id ${stallScheduleId} not found.`);
+    }
+
+    return next(new CustomSuccess(stallSchedule, 200));
+  } catch (error: any) {
+    return next(new CustomError(error.message, 500));
+  }
+};
+
 export const editBasicDetailsOfStallSchedule = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
   try {
-    return next(new CustomSuccess(null, 200));
+    let { stallScheduleId }: any = req.params;
+    stallScheduleId = new Types.ObjectId(stallScheduleId);
+
+    let stallSchedule = await StallScheduleModel
+      .findById(stallScheduleId);
+    
+    if (!stallSchedule) {
+      throw new Error(`Stall schedule with id ${stallScheduleId} not found.`);
+    }
+
+    const newBasicDetails = merge<EditStallScheduleBasicDetailsDto, any>(
+      new EditStallScheduleBasicDetailsDto(stallSchedule),
+      req.body
+    );
+
+    stallSchedule.venue = newBasicDetails.venue;
+    stallSchedule.date = newBasicDetails.date;
+    stallSchedule.openingTime = newBasicDetails.openingTime;
+    stallSchedule.closingTime = newBasicDetails.closingTime;
+    await stallSchedule.save();
+    return next(new CustomSuccess(stallSchedule, 200));
+  } catch (error: any) {
+    return next(new CustomError(error.message, 500));
+  }
+};
+
+export const deleteStallSchedule = async (req: GetUserAuthInfoRequestInterface, res: Response, next: NextFunction) => {
+  try {
+    let { stallScheduleId }: any = req.params;
+    stallScheduleId = new Types.ObjectId(stallScheduleId);
+
+    const deletedStallSchedule = await StallScheduleModel
+      .findByIdAndDelete(stallScheduleId);
+
+    if (!deletedStallSchedule) {
+      throw new Error(`Stall schedule with id ${stallScheduleId} not found.`);
+    }
+
+    return next(new CustomSuccess(deletedStallSchedule, 200));
   } catch (error: any) {
     return next(new CustomError(error.message, 500));
   }

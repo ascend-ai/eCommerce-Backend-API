@@ -7,8 +7,10 @@ import {
 } from '../shared';
 import {
   createStallSchedule,
+  deleteStallSchedule,
   editBasicDetailsOfStallSchedule,
-  getAllStallSchedules
+  getAllStallSchedules,
+  getStallSchedule
 } from '../controllers';
 
 const router = express.Router();
@@ -22,6 +24,8 @@ router.use(isAuthenticated);
 // * AUTHORIZED ROUTES - ADMIN & MODERATORS
 router.use(isAuthenticateUserAdminOrMod);
 router.post('/', createStallSchedule);
+router.get('/:stallScheduleId', getStallSchedule);
+router.delete('/:stallScheduleId', deleteStallSchedule);
 router.put('/:stallScheduleId/basic-details', editBasicDetailsOfStallSchedule);
 
 
