@@ -7,6 +7,16 @@ import {
 
 export const ACCEPTED_IMG_EXTENSIONS = ['jpeg', 'jpg', 'png'];
 
+export const PRODUCT_NAME_LENGTH_RANGE = {
+  MIN: 3,
+  MAX: 200
+} as const;
+
+export const PRODUCT_DESCRIPTION_LENGTH_RANGE = {
+  MIN: 5,
+  MAX: 1000
+} as const;
+
 /**
  * Targeted image size in bytes which is 102400 bytes or 100 kilobytes
  */

@@ -2,49 +2,28 @@ import mongoose, {
   CallbackWithoutResultAndOptionalError
 } from 'mongoose';
 import {
+  STALL_SCHEDULE_VENUE_LENGTH_RANGE,
   StallScheduleInterface
 } from '../shared';
 
 const stallScheduleSchema = new mongoose.Schema<StallScheduleInterface>({
   venue: {
     type: String,
-    minlength: 5
+    minlength: STALL_SCHEDULE_VENUE_LENGTH_RANGE.MIN
   },
   date: {
     type: Number,
     required: true,
-    validate: {
-      validator: function(this: StallScheduleInterface) {
-        const givenDate: number = new Date(this.date).getDate();
-        const givenMonth: number = new Date(this.date).getMonth();
-        const givenYear: number = new Date(this.date).getFullYear();
-        const currentDate: number = new Date().getDate();
-        const currentMonth: number = new Date().getMonth();
-        const currentYear: number = new Date().getFullYear();
-        return (givenDate >= currentDate) &&
-               (givenMonth >= currentMonth) &&
-               (givenYear >= currentYear)
-      },
-      message: `Date cannot be less than ${new Date().getDate()}/${new Date().getMonth() + 1}/${new Date().getFullYear()}`
+    validate: function(this: StallScheduleInterface) {
+      return this.date > Date.now();
     }
   },
   openingTime: {
     type: Number,
     required: true,
-    validate: {
-      validator: function(this: StallScheduleInterface) {
-        const givenDate: number = new Date(this.openingTime).getDate();
-        const givenMonth: number = new Date(this.openingTime).getMonth();
-        const givenYear: number = new Date(this.openingTime).getFullYear();
-        const currentDate: number = new Date().getDate();
-        const currentMonth: number = new Date().getMonth();
-        const currentYear: number = new Date().getFullYear();
-        return (this.openingTime < this.closingTime) &&
-               (givenDate >= currentDate) &&
-               (givenMonth >= currentMonth) &&
-               (givenYear >= currentYear);
-      },
-      message: `Opening time cannot be greater than closing time & it cannot be less that ${new Date().getDate()}/${new Date().getMonth() + 1}/${new Date().getFullYear()}, 00:00AM`
+    validate: function(this: StallScheduleInterface) {
+      return (this.openingTime < this.closingTime) &&
+             (this.openingTime >= Date.now());
     }
   },
   closingTime: {
