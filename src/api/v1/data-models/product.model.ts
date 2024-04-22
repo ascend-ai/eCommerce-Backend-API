@@ -9,21 +9,25 @@ import {
   MIN_IMAGES_PER_PRODUCT,
   MIN_PRODUCT_PRICE,
   MIN_QTY_IN_STOCK,
+  PRODUCT_DESCRIPTION_LENGTH_RANGE,
+  PRODUCT_NAME_LENGTH_RANGE,
   ProductInterface
 } from '../shared';
 
 const productSchema = new mongoose.Schema<ProductInterface>({
   name: {
     type: String,
-    minlength: 3,
-    maxlength: 200,
+    minlength: PRODUCT_NAME_LENGTH_RANGE.MIN,
+    maxlength: PRODUCT_NAME_LENGTH_RANGE.MAX,
     required: true,
   },
   description: {
     type: String,
     validate: {
       validator: function (value: string) {
-        return (value?.length === 0) || (value?.length >= 5 && value?.length <= 1000);
+        return (value?.length === 0) ||
+               (value?.length >= PRODUCT_DESCRIPTION_LENGTH_RANGE.MIN &&
+                value?.length <= PRODUCT_DESCRIPTION_LENGTH_RANGE.MAX);
       },
       message: 'Description should be minimum 5 and maximum 1000 characters long.'
     }
